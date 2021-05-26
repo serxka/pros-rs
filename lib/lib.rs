@@ -4,7 +4,8 @@
 extern crate alloc;
 
 use core::alloc::{GlobalAlloc, Layout};
-use libc::{memalign, free};
+use libc::{free, memalign};
+pub use libc_print::std_name::*;
 
 struct LibcAlloc;
 unsafe impl GlobalAlloc for LibcAlloc {
@@ -24,7 +25,14 @@ fn alloc_error(layout: Layout) -> ! {
 	panic!("alloc failed: {:?}", layout);
 }
 
+#[panic_handler]
+fn panic(info: &core::panic::PanicInfo) -> ! {
+	eprintln!("panic has occured: {:?}", info);
 
+	unsafe {
+		libc::_exit(1);
+	}
+}
 
 #[allow(non_upper_case_globals)]
 #[allow(non_camel_case_types)]
@@ -33,29 +41,5 @@ pub mod bindings {
 	include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 }
 
-mod entry;
-
-#[allow(dead_code)]
-extern "C" fn initialize() {
-	entry::initialize();
-}
-
-#[allow(dead_code)]
-extern "C" fn disabled() {
-	entry::disabled();
-}
-
-#[allow(dead_code)]
-extern "C" fn competition_initialize() {
-	entry::competition_initialize();
-}
-
-#[allow(dead_code)]
-extern "C" fn autonomous() {
-	entry::autonomous();
-}
-
-#[allow(dead_code)]
-extern "C" fn opcontrol() {
-	entry::opcontrol();
-}
+pub mod macros;
+pub mod robot;
