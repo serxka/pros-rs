@@ -1,7 +1,11 @@
 use std::env;
 use std::path::PathBuf;
 
-const WHITELIST_FUNCTIONS: &[&str] = &[];
+const WHITELIST_FUNCTIONS: &[&str] = &[
+	"motor_move",
+	"motor_move_absolute",
+	"motor_move_relative",
+];
 const WHITELIST_TYPES: &[&str] = &[];
 const WHITELIST_VARS: &[&str] = &[];
 const BITFIELD_ENUM: &[&str] = &[];
@@ -17,6 +21,9 @@ fn main() {
 	// Extract kernel zip
 	let kernel_file = std::fs::File::open("kernel@3.4.0.zip").expect("failed to open kernel zip file");
 	zip::read::ZipArchive::new(kernel_file).unwrap().extract(kernel_path.clone()).expect("failed to extract zip");
+
+	// Add link search paths for the firmware and link
+	println!("cargo:rustc-link-search={}", kernel_path.clone().join("firmware").display());
 
 	// Get std headers for c to generate bindings correctly
 	let command = std::process::Command::new("arm-none-eabi-gcc")

@@ -5,7 +5,6 @@ extern crate alloc;
 
 use core::alloc::{GlobalAlloc, Layout};
 use libc::{memalign, free};
-use libc_print::std_name::*;
 
 struct LibcAlloc;
 unsafe impl GlobalAlloc for LibcAlloc {
@@ -25,14 +24,7 @@ fn alloc_error(layout: Layout) -> ! {
 	panic!("alloc failed: {:?}", layout);
 }
 
-#[panic_handler]
-fn panic(info: &core::panic::PanicInfo) -> ! {
-	eprintln!("panic occured: {:?}", info);
-	
-	unsafe {
-		libc::exit(1)
-	}
-}
+
 
 #[allow(non_upper_case_globals)]
 #[allow(non_camel_case_types)]

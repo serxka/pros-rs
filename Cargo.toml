@@ -5,9 +5,12 @@ authors = ["serxka <serxka@protonmail.com>"]
 edition = "2018"
 
 [lib]
-crate-type = ["staticlib"]
 name = "pros"
-path = "src/lib.rs"
+path = "lib/lib.rs"
+
+[[bin]]
+name = "template"
+path = "src/main.rs"
 
 [dependencies]
 libc = { version = "0.2", default-features = false }
