@@ -16,5 +16,9 @@ Priorities for bindings and gettings things working
 * rustc-src componenet
 
 **Commands to get Rust part working**
-`rustup target install armv7a-none-eabi`
-`rustup component add rust-src`
+```
+$ rustup target install armv7a-none-eabi
+...
+$ rustup component add rust-src
+...
+```
