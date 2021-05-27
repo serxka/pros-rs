@@ -3,17 +3,35 @@
 
 extern crate alloc;
 
+#[allow(non_upper_case_globals)]
+#[allow(non_camel_case_types)]
+#[allow(non_snake_case)]
+pub mod bindings {
+	include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
+}
+
+pub mod macros;
+pub mod robot;
+pub mod util;
+
+pub mod motor;
+pub mod rtos;
+
+pub mod prelude {
+	pub use crate::robot::Robot;
+	pub use libc_print::std_name::*;
+}
+
+// LANGUAGE ITEMS
 use core::alloc::{GlobalAlloc, Layout};
-use libc::{free, memalign};
-pub use libc_print::std_name::*;
 
 struct LibcAlloc;
 unsafe impl GlobalAlloc for LibcAlloc {
 	unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
-		memalign(layout.align(), layout.size()) as *mut u8
+		libc::memalign(layout.align(), layout.size()) as *mut u8
 	}
 	unsafe fn dealloc(&self, ptr: *mut u8, _layout: Layout) {
-		free(ptr as *mut core::ffi::c_void)
+		libc::free(ptr as *mut core::ffi::c_void)
 	}
 }
 
@@ -27,22 +45,9 @@ fn alloc_error(layout: Layout) -> ! {
 
 #[panic_handler]
 fn panic(info: &core::panic::PanicInfo) -> ! {
-	use core::sync::atomic::AtomicUsize;
-	static mut ATOMIC: AtomicUsize = AtomicUsize::new(0);
-
-	eprintln!("panic has occured: {:?}", info);
+	libc_print::libc_eprintln!("panic has occured: {:?}", info);
 
 	unsafe {
 		libc::_exit(1);
 	}
 }
-
-#[allow(non_upper_case_globals)]
-#[allow(non_camel_case_types)]
-#[allow(non_snake_case)]
-pub mod bindings {
-	include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
-}
-
-pub mod macros;
-pub mod robot;

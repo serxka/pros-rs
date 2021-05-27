@@ -1,6 +1,6 @@
 #!/bin/bash
 BIN="${1}.bin"
-arm-none-eabi-objcopy -O binary $1 $BIN
+arm-none-eabi-objcopy -O binary -R .hot_init $1 $BIN
 
 cat << EOF > project.pros
 {
@@ -29,8 +29,8 @@ cat << EOF > project.pros
 }
 EOF
 
-if [ -z $2 ]; then
+if [ -z $3 ]; then
 	prosv5 upload
 else
-	prosv5 upload --slot $2
+	prosv5 upload --slot $2 --name "${3}"
 fi

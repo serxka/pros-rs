@@ -6,6 +6,7 @@ Priorities for bindings and gettings things working
 * FreeRTOS (tasks, mutexs, atomics, etc)
 * Controller / Motors
 * ADI (TriPort)
+* Proper cstring interop
 * All other bindings
 * Testing
 

@@ -1,21 +1,32 @@
 #![no_std]
 #![no_main]
 
+#[macro_use]
 extern crate pros;
+use pros::prelude::*;
 
-#[no_mangle]
-extern "C" fn initialize() {
-	pros::println!("initialize()");
+struct VexRobot;
+
+impl Robot for VexRobot {
+	fn new(/*registry: Registry*/) -> Self {
+		VexRobot
+	}
+
+	fn competition_init(&mut self) {
+		println!("competition_init()");
+	}
+
+	fn disabled(&mut self) {
+		println!("disabled()");
+	}
+
+	fn autonomous(&mut self) {
+		println!("autonomous()");
+	}
+
+	fn opcontrol(&mut self) {
+		println!("opcontrol()");
+	}
 }
 
-#[no_mangle]
-extern "C" fn disabled() {}
-
-#[no_mangle]
-extern "C" fn competition_initialize() {}
-
-#[no_mangle]
-extern "C" fn autonomous() {}
-
-#[no_mangle]
-extern "C" fn opcontrol() {}
+robot!(VexRobot);

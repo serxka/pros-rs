@@ -1,12 +1,11 @@
 pub trait Robot {
 	fn new() -> Self;
 
-	/// Formally `competition_initalize` in pros
-	fn initialize(&self);
+	fn competition_init(&mut self);
 
-	fn disabled(&self);
+	fn disabled(&mut self);
 
-	fn autonomous(&self);
+	fn autonomous(&mut self);
 
-	fn opcontrol(&self);
+	fn opcontrol(&mut self);
 }

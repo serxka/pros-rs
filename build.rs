@@ -227,7 +227,7 @@ const WHITELIST_FUNCTIONS: &[&str] = &[
 ];
 
 const WHITELIST_TYPES: &[&str] = &["motor_pid_s"];
-const WHITELIST_VARS: &[&str] = &[];
+const WHITELIST_VARS: &[&str] = &["errno"];
 const BITFIELD_ENUM: &[&str] = &[];
 
 fn main() {
