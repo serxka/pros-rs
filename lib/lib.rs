@@ -27,6 +27,9 @@ fn alloc_error(layout: Layout) -> ! {
 
 #[panic_handler]
 fn panic(info: &core::panic::PanicInfo) -> ! {
+	use core::sync::atomic::AtomicUsize;
+	static mut ATOMIC: AtomicUsize = AtomicUsize::new(0);
+
 	eprintln!("panic has occured: {:?}", info);
 
 	unsafe {
