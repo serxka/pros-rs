@@ -22,7 +22,7 @@ cat << EOF > project.pros
                 "target": "v5",
                 "user_files": [],
                 "version": "3.4.0"
-            },
+            }
         },
         "upload_options": {}
     }
