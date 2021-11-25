@@ -21,15 +21,5 @@
   },
   "relocation-model": "static",
   "target-family": "unix",
-  "target-pointer-width": "32",
-  "unsupported-abis": [
-    "stdcall",
-    "stdcall-unwind",
-    "fastcall",
-    "vectorcall",
-    "thiscall",
-    "thiscall-unwind",
-    "win64",
-    "sysv64"
-  ]
+  "target-pointer-width": "32"
 }

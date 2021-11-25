@@ -240,7 +240,7 @@ fn main() {
 
 	// Extract kernel zip
 	let kernel_file =
-		std::fs::File::open("kernel@3.4.0.zip").expect("failed to open kernel zip file");
+		std::fs::File::open("kernel@3.5.3.zip").expect("failed to open kernel zip file");
 	zip::read::ZipArchive::new(kernel_file)
 		.unwrap()
 		.extract(kernel_path.clone())
