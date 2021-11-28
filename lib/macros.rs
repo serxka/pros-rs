@@ -2,7 +2,7 @@
 macro_rules! robot {
 	($robot:tt) => {
 		// WHAT THE ACTUAL FUCK WHY WON'T TY WORK
-		static ROBOT: $crate::util::StaticMut<$robot> = $crate::util::StaticMut::new();
+		static mut ROBOT: $crate::util::StaticMut<$robot> = $crate::util::StaticMut::new();
 
 		#[no_mangle]
 		extern "C" fn initialize() {
