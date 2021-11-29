@@ -2,6 +2,10 @@ use alloc::{string::String, vec::Vec};
 use core::mem::MaybeUninit;
 use core::sync::atomic::{AtomicBool, Ordering};
 
+pub(crate) const PROS_ERR: i32 = i32::MAX;
+pub(crate) const PROS_ERR_U32: u32 = i32::MAX as u32;
+pub(crate) const PROS_ERR_F: f64 = f64::INFINITY;
+
 pub struct StaticMut<T> {
 	has_init: AtomicBool,
 	item: MaybeUninit<T>,
@@ -35,6 +39,15 @@ impl<T> StaticMut<T> {
 		while !s.has_init.load(Ordering::Relaxed) {}
 		unsafe { &mut *s.item.as_mut_ptr() }
 	}
+}
+
+extern "C" {
+	// Returns a pointer to this threads errno value
+	fn __errno() -> *mut i32;
+}
+
+pub(crate) fn get_errno() -> libc::c_int {
+	unsafe { *__errno() }
 }
 
 pub fn cstring_from(cstr: *const libc::c_char) -> String {

@@ -24,7 +24,8 @@ impl Task {
 
 		let name = self.name.unwrap();
 		unsafe {
-			let slice = core::slice::from_raw_parts(name, libc::strlen(name)) as &[u8];
+			let slice = core::slice::from_raw_parts(name, libc::strlen(name))
+				as &[u8];
 			core::str::from_utf8(slice).unwrap()
 		}
 	}

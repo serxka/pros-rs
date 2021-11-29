@@ -236,11 +236,12 @@ fn main() {
 	let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
 	let kernel_path = out_path.join("pros");
 
-	std::fs::create_dir_all(kernel_path.clone()).expect("failed to create extract dir");
+	std::fs::create_dir_all(kernel_path.clone())
+		.expect("failed to create extract dir");
 
 	// Extract kernel zip
-	let kernel_file =
-		std::fs::File::open("kernel@3.5.3.zip").expect("failed to open kernel zip file");
+	let kernel_file = std::fs::File::open("kernel@3.5.3.zip")
+		.expect("failed to open kernel zip file");
 	zip::read::ZipArchive::new(kernel_file)
 		.unwrap()
 		.extract(kernel_path.clone())

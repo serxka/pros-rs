@@ -43,6 +43,7 @@ fn alloc_error(layout: Layout) -> ! {
 	panic!("alloc failed: {:?}", layout);
 }
 
+// TODO: Printing to screen for easy debugging
 #[panic_handler]
 fn panic(info: &core::panic::PanicInfo) -> ! {
 	libc_print::libc_eprintln!("panic has occured: {:?}", info);
