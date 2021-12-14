@@ -2,15 +2,11 @@
 name = "pros"
 version = "0.1.0"
 authors = ["serxka <serxka@protonmail.com>"]
-edition = "2018"
+edition = "2021"
 
 [lib]
 name = "pros"
-path = "lib/lib.rs"
-
-[[bin]]
-name = "template"
-path = "src/main.rs"
+path = "src/lib.rs"
 
 [dependencies]
 libc = { version = "0.2", default-features = false }
