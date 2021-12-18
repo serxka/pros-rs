@@ -2,6 +2,8 @@
 #![feature(alloc_error_handler)]
 
 extern crate alloc;
+#[macro_use]
+extern crate smallvec;
 
 #[allow(non_upper_case_globals)]
 #[allow(non_camel_case_types)]
@@ -14,13 +16,16 @@ pub mod macros;
 pub mod robot;
 pub mod util;
 
-pub mod motor;
+/*pub(crate)*/
+mod device;
 pub mod rtos;
 
 pub mod prelude {
 	pub use crate::robot::Robot;
 	pub use libc_print::std_name::*;
 }
+
+pub use device::{controller::*, motor::*, GenericError};
 
 // LANGUAGE ITEMS
 use core::alloc::{GlobalAlloc, Layout};
