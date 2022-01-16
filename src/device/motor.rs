@@ -3,7 +3,7 @@ use num_derive::FromPrimitive;
 use num_traits::FromPrimitive;
 
 use crate::bindings::*;
-use crate::util::{get_errno, PROS_ERR, PROS_ERR_F, PROS_ERR_U32};
+use crate::util::{get_errno, PROS_ERR, PROS_ERR_F, PROS_ERR_U32, Port};
 
 /// Possible errors that could be returned from motor function calls
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -106,12 +106,12 @@ bitflags! {
 /// A struct which holds and represent a connected V5 motor
 #[derive(Debug)]
 pub struct Motor {
-	pub port: u8,
+	pub port: Port,
 }
 
 impl Motor {
 	pub fn new(
-		port: u8,
+		port: Port,
 		reversed: bool,
 		gearset: Gearset,
 		units: EncoderUnits,
@@ -124,8 +124,12 @@ impl Motor {
 		Ok(m)
 	}
 
+	fn get_port(&self) -> u8 {
+		self.port.into()
+	}
+
 	pub fn move_simple(&mut self, voltage: i8) -> Result<(), MotorError> {
-		match unsafe { motor_move(self.port, voltage as i32) } {
+		match unsafe { motor_move(self.get_port(), voltage as i32) } {
 			PROS_ERR => Err(MotorError::errno()),
 			_ => Ok(()),
 		}
@@ -141,7 +145,7 @@ impl Motor {
 		velocity: i32,
 	) -> Result<(), MotorError> {
 		assert!(velocity > 0);
-		match unsafe { motor_move_absolute(self.port, position, velocity) } {
+		match unsafe { motor_move_absolute(self.get_port(), position, velocity) } {
 			PROS_ERR => Err(MotorError::errno()),
 			_ => Ok(()),
 		}
@@ -153,7 +157,7 @@ impl Motor {
 		velocity: i32,
 	) -> Result<(), MotorError> {
 		assert!(velocity > 0);
-		match unsafe { motor_move_relative(self.port, offset, velocity) } {
+		match unsafe { motor_move_relative(self.get_port(), offset, velocity) } {
 			PROS_ERR => Err(MotorError::errno()),
 			_ => Ok(()),
 		}
@@ -169,7 +173,7 @@ impl Motor {
 			Gearset::Red => assert!(velocity >= 100 && velocity <= 100),
 		}
 		assert!(velocity != 0);
-		match unsafe { motor_move_velocity(self.port, velocity) } {
+		match unsafe { motor_move_velocity(self.get_port(), velocity) } {
 			PROS_ERR => Err(MotorError::errno()),
 			_ => Ok(()),
 		}
@@ -177,7 +181,7 @@ impl Motor {
 
 	pub fn move_voltage(&mut self, voltage: i16) -> Result<(), MotorError> {
 		assert!(voltage >= -12000 && voltage <= 12000);
-		match unsafe { motor_move_voltage(self.port, voltage as i32) } {
+		match unsafe { motor_move_voltage(self.get_port(), voltage as i32) } {
 			PROS_ERR => Err(MotorError::errno()),
 			_ => Ok(()),
 		}
@@ -193,14 +197,14 @@ impl Motor {
 			Gearset::Red => assert!(velocity >= 100 && velocity <= 100),
 		}
 		assert!(velocity != 0);
-		match unsafe { motor_modify_profiled_velocity(self.port, velocity) } {
+		match unsafe { motor_modify_profiled_velocity(self.get_port(), velocity) } {
 			PROS_ERR => Err(MotorError::errno()),
 			_ => Ok(()),
 		}
 	}
 
 	pub fn get_target_position(&mut self) -> Result<f64, MotorError> {
-		let r = unsafe { motor_get_target_position(self.port) };
+		let r = unsafe { motor_get_target_position(self.get_port()) };
 		if r == PROS_ERR_F {
 			Err(MotorError::errno())
 		} else {
@@ -209,14 +213,14 @@ impl Motor {
 	}
 
 	pub fn get_target_velocity(&mut self) -> Result<i32, MotorError> {
-		match unsafe { motor_get_target_velocity(self.port) } {
+		match unsafe { motor_get_target_velocity(self.get_port()) } {
 			PROS_ERR => Err(MotorError::errno()),
 			v => Ok(v),
 		}
 	}
 
 	pub fn get_actual_velocity(&mut self) -> Result<f64, MotorError> {
-		let r = unsafe { motor_get_actual_velocity(self.port) };
+		let r = unsafe { motor_get_actual_velocity(self.get_port()) };
 		if r == PROS_ERR_F {
 			Err(MotorError::errno())
 		} else {
@@ -225,7 +229,7 @@ impl Motor {
 	}
 
 	pub fn get_current_draw(&mut self) -> Result<u32, MotorError> {
-		match unsafe { motor_get_current_draw(self.port) } {
+		match unsafe { motor_get_current_draw(self.get_port()) } {
 			PROS_ERR => Err(MotorError::errno()),
 			i => {
 				// We can't have a negative current draw
@@ -236,7 +240,7 @@ impl Motor {
 	}
 
 	pub fn get_direction(&mut self) -> Result<Direction, MotorError> {
-		match unsafe { motor_get_direction(self.port) } {
+		match unsafe { motor_get_direction(self.get_port()) } {
 			PROS_ERR => Err(MotorError::errno()),
 			1 => Ok(Direction::Forward),
 			-1 => Ok(Direction::Reverse),
@@ -245,7 +249,7 @@ impl Motor {
 	}
 
 	pub fn get_efficiency(&mut self) -> Result<f64, MotorError> {
-		let r = unsafe { motor_get_efficiency(self.port) };
+		let r = unsafe { motor_get_efficiency(self.get_port()) };
 		if r == PROS_ERR_F {
 			Err(MotorError::errno())
 		} else {
@@ -254,17 +258,17 @@ impl Motor {
 	}
 
 	pub fn get_faults(&mut self) -> Result<FaultFlags, MotorError> {
-		let _f = unsafe { motor_get_faults(self.port) };
+		let _f = unsafe { motor_get_faults(self.get_port()) };
 		unimplemented!()
 	}
 
 	pub fn get_flags(&mut self) -> Result<MotorFlags, MotorError> {
-		let _f = unsafe { motor_get_flags(self.port) };
+		let _f = unsafe { motor_get_flags(self.get_port()) };
 		unimplemented!()
 	}
 
 	pub fn get_position(&mut self) -> Result<f64, MotorError> {
-		let r = unsafe { motor_get_position(self.port) };
+		let r = unsafe { motor_get_position(self.get_port()) };
 		if r == PROS_ERR_F {
 			Err(MotorError::errno())
 		} else {
@@ -273,7 +277,7 @@ impl Motor {
 	}
 
 	pub fn get_power(&mut self) -> Result<f64, MotorError> {
-		let r = unsafe { motor_get_power(self.port) };
+		let r = unsafe { motor_get_power(self.get_port()) };
 		if r == PROS_ERR_F {
 			Err(MotorError::errno())
 		} else {
@@ -286,7 +290,7 @@ impl Motor {
 		timestamp: &mut u32,
 	) -> Result<i32, MotorError> {
 		match unsafe {
-			motor_get_raw_position(self.port, timestamp as *mut u32)
+			motor_get_raw_position(self.get_port(), timestamp as *mut u32)
 		} {
 			PROS_ERR => Err(MotorError::errno()),
 			p => Ok(p),
@@ -294,7 +298,7 @@ impl Motor {
 	}
 
 	pub fn get_temperature(&mut self) -> Result<f64, MotorError> {
-		let r = unsafe { motor_get_temperature(self.port) };
+		let r = unsafe { motor_get_temperature(self.get_port()) };
 		if r == PROS_ERR_F {
 			Err(MotorError::errno())
 		} else {
@@ -303,7 +307,7 @@ impl Motor {
 	}
 
 	pub fn get_torque(&mut self) -> Result<f64, MotorError> {
-		let r = unsafe { motor_get_torque(self.port) };
+		let r = unsafe { motor_get_torque(self.get_port()) };
 		if r == PROS_ERR_F {
 			Err(MotorError::errno())
 		} else {
@@ -312,14 +316,14 @@ impl Motor {
 	}
 
 	pub fn get_voltage(&mut self) -> Result<i32, MotorError> {
-		match unsafe { motor_get_voltage(self.port) } {
+		match unsafe { motor_get_voltage(self.get_port()) } {
 			PROS_ERR => Err(MotorError::errno()),
 			mv => Ok(mv),
 		}
 	}
 
 	pub fn at_zero_position(&mut self) -> Result<bool, MotorError> {
-		match unsafe { motor_get_zero_position_flag(self.port) } {
+		match unsafe { motor_get_zero_position_flag(self.get_port()) } {
 			PROS_ERR => Err(MotorError::errno()),
 			1 => Ok(true),
 			0 => Ok(false),
@@ -328,7 +332,7 @@ impl Motor {
 	}
 
 	pub fn is_stopped(&mut self) -> Result<bool, MotorError> {
-		match unsafe { motor_is_stopped(self.port) } {
+		match unsafe { motor_is_stopped(self.get_port()) } {
 			PROS_ERR => Err(MotorError::errno()),
 			1 => Ok(true),
 			0 => Ok(false),
@@ -337,7 +341,7 @@ impl Motor {
 	}
 
 	pub fn is_over_current(&mut self) -> Result<bool, MotorError> {
-		match unsafe { motor_is_over_current(self.port) } {
+		match unsafe { motor_is_over_current(self.get_port()) } {
 			PROS_ERR => Err(MotorError::errno()),
 			1 => Ok(true),
 			0 => Ok(false),
@@ -346,7 +350,7 @@ impl Motor {
 	}
 
 	pub fn is_over_temp(&mut self) -> Result<bool, MotorError> {
-		match unsafe { motor_is_over_temp(self.port) } {
+		match unsafe { motor_is_over_temp(self.get_port()) } {
 			PROS_ERR => Err(MotorError::errno()),
 			1 => Ok(true),
 			0 => Ok(false),
@@ -355,7 +359,7 @@ impl Motor {
 	}
 
 	pub fn get_brake_mode(&mut self) -> Result<BrakeMode, MotorError> {
-		match unsafe { motor_get_brake_mode(self.port) } {
+		match unsafe { motor_get_brake_mode(self.get_port()) } {
 			PROS_ERR_U32 => Err(MotorError::errno()),
 			m => match BrakeMode::from_u32(m) {
 				Some(m) => Ok(m),
@@ -365,7 +369,7 @@ impl Motor {
 	}
 
 	pub fn get_current_limit(&mut self) -> Result<u32, MotorError> {
-		match unsafe { motor_get_current_limit(self.port) } {
+		match unsafe { motor_get_current_limit(self.get_port()) } {
 			PROS_ERR => Err(MotorError::errno()),
 			i => {
 				// We can't have a negative current limit
@@ -376,7 +380,7 @@ impl Motor {
 	}
 
 	pub fn get_encoder_units(&mut self) -> Result<EncoderUnits, MotorError> {
-		match unsafe { motor_get_encoder_units(self.port) } {
+		match unsafe { motor_get_encoder_units(self.get_port()) } {
 			PROS_ERR_U32 => Err(MotorError::errno()),
 			m => match EncoderUnits::from_u32(m) {
 				Some(m) => Ok(m),
@@ -386,7 +390,7 @@ impl Motor {
 	}
 
 	pub fn get_gearing(&mut self) -> Result<Gearset, MotorError> {
-		match unsafe { motor_get_gearing(self.port) } {
+		match unsafe { motor_get_gearing(self.get_port()) } {
 			PROS_ERR_U32 => Err(MotorError::errno()),
 			m => match Gearset::from_u32(m) {
 				Some(m) => Ok(m),
@@ -396,7 +400,7 @@ impl Motor {
 	}
 
 	pub fn get_voltage_limit(&mut self) -> Result<u32, MotorError> {
-		match unsafe { motor_get_voltage_limit(self.port) } {
+		match unsafe { motor_get_voltage_limit(self.get_port()) } {
 			PROS_ERR => Err(MotorError::errno()),
 			i => {
 				// We can't have a negative voltage limit
@@ -407,7 +411,7 @@ impl Motor {
 	}
 
 	pub fn is_reversed(&mut self) -> Result<bool, MotorError> {
-		match unsafe { motor_is_reversed(self.port) } {
+		match unsafe { motor_is_reversed(self.get_port()) } {
 			PROS_ERR => Err(MotorError::errno()),
 			1 => Ok(true),
 			0 => Ok(false),
@@ -419,14 +423,14 @@ impl Motor {
 		&mut self,
 		mode: BrakeMode,
 	) -> Result<(), MotorError> {
-		match unsafe { motor_set_brake_mode(self.port, mode as u32) } {
+		match unsafe { motor_set_brake_mode(self.get_port(), mode as u32) } {
 			PROS_ERR => Err(MotorError::errno()),
 			_ => Ok(()),
 		}
 	}
 
 	pub fn set_current_limit(&mut self, limit: u32) -> Result<(), MotorError> {
-		match unsafe { motor_set_current_limit(self.port, limit as i32) } {
+		match unsafe { motor_set_current_limit(self.get_port(), limit as i32) } {
 			PROS_ERR => Err(MotorError::errno()),
 			_ => Ok(()),
 		}
@@ -436,21 +440,21 @@ impl Motor {
 		&mut self,
 		units: EncoderUnits,
 	) -> Result<(), MotorError> {
-		match unsafe { motor_set_encoder_units(self.port, units as u32) } {
+		match unsafe { motor_set_encoder_units(self.get_port(), units as u32) } {
 			PROS_ERR => Err(MotorError::errno()),
 			_ => Ok(()),
 		}
 	}
 
 	pub fn set_gearing(&mut self, gearing: Gearset) -> Result<(), MotorError> {
-		match unsafe { motor_set_gearing(self.port, gearing as u32) } {
+		match unsafe { motor_set_gearing(self.get_port(), gearing as u32) } {
 			PROS_ERR => Err(MotorError::errno()),
 			_ => Ok(()),
 		}
 	}
 
 	pub fn set_reversed(&mut self, reverse: bool) -> Result<(), MotorError> {
-		match unsafe { motor_set_reversed(self.port, reverse) } {
+		match unsafe { motor_set_reversed(self.get_port(), reverse) } {
 			PROS_ERR => Err(MotorError::errno()),
 			_ => Ok(()),
 		}
@@ -458,7 +462,7 @@ impl Motor {
 
 	pub fn set_voltage_limit(&mut self, limit: u32) -> Result<(), MotorError> {
 		assert!(limit <= 12000);
-		match unsafe { motor_set_voltage_limit(self.port, limit as i32) } {
+		match unsafe { motor_set_voltage_limit(self.get_port(), limit as i32) } {
 			PROS_ERR => Err(MotorError::errno()),
 			_ => Ok(()),
 		}
@@ -468,14 +472,14 @@ impl Motor {
 		&mut self,
 		position: f64,
 	) -> Result<(), MotorError> {
-		match unsafe { motor_set_zero_position(self.port, position) } {
+		match unsafe { motor_set_zero_position(self.get_port(), position) } {
 			PROS_ERR => Err(MotorError::errno()),
 			_ => Ok(()),
 		}
 	}
 
 	pub fn tare_position(&mut self) -> Result<(), MotorError> {
-		match unsafe { motor_tare_position(self.port) } {
+		match unsafe { motor_tare_position(self.get_port()) } {
 			PROS_ERR => Err(MotorError::errno()),
 			_ => Ok(()),
 		}

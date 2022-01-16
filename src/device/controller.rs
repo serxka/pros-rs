@@ -48,15 +48,16 @@ pub enum Button {
 	B = controller_digital_e_t_E_CONTROLLER_DIGITAL_B,
 	Y = controller_digital_e_t_E_CONTROLLER_DIGITAL_Y,
 	A = controller_digital_e_t_E_CONTROLLER_DIGITAL_A,
-
 }
 
 impl Controller {
 	pub fn get_analog(&self, axis: Axis) -> Result<i32, GenericError> {
-		unsafe { match controller_get_analog(self.id, axis as u32) {
-			PROS_ERR => Err(GenericError::errno()),
-			v => Ok(v)
-		} }
+		unsafe {
+			match controller_get_analog(self.id, axis as u32) {
+				PROS_ERR => Err(GenericError::errno()),
+				v => Ok(v),
+			}
+		}
 	}
 
 	pub fn get_button(&self, button: Button) -> Result<bool, GenericError> {
@@ -196,7 +197,6 @@ pub mod Competition {
 			const CONNECTED = 0x1 << 0x2;
 		}
 	}
-
 
 	pub fn get_status() -> CompetitionMode {
 		let flags = unsafe { competition_get_status() };

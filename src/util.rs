@@ -6,6 +6,8 @@ pub(crate) const PROS_ERR: i32 = i32::MAX;
 pub(crate) const PROS_ERR_U32: u32 = i32::MAX as u32;
 pub(crate) const PROS_ERR_F: f64 = f64::INFINITY;
 
+pub type Port = core::num::NonZeroU8;
+
 pub struct StaticMut<T> {
 	has_init: AtomicBool,
 	item: MaybeUninit<T>,
