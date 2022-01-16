@@ -6,7 +6,7 @@ use crate::bindings::*;
 use crate::util::{get_errno, PROS_ERR, PROS_ERR_F, PROS_ERR_U32};
 
 /// Possible errors that could be returned from motor function calls
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MotorError {
 	/// The Port chosen cannot be configured as a motor
 	PortNotMotor,
@@ -30,7 +30,7 @@ impl MotorError {
 
 /// Describes the behavior of the motor when braking.
 #[repr(u32)]
-#[derive(Debug, FromPrimitive)]
+#[derive(Debug, FromPrimitive, Clone, Copy, PartialEq, Eq)]
 pub enum BrakeMode {
 	/// Motor coasts when stopped, traditional behavior
 	Coast = motor_brake_mode_e_E_MOTOR_BRAKE_COAST,
@@ -42,7 +42,7 @@ pub enum BrakeMode {
 
 /// Describes the units used when operating on the motor's encoder.
 #[repr(u32)]
-#[derive(Debug, FromPrimitive)]
+#[derive(Debug, FromPrimitive, Clone, Copy, PartialEq, Eq)]
 pub enum EncoderUnits {
 	/// Position is recorded as an angle in degrees
 	Degrees = motor_encoder_units_e_E_MOTOR_ENCODER_DEGREES,
@@ -55,7 +55,7 @@ pub enum EncoderUnits {
 /// Describes the current gearing used on the motor. This only affects
 /// calculations internally done and how input values should be interpreted.
 #[repr(u32)]
-#[derive(Debug, FromPrimitive)]
+#[derive(Debug, FromPrimitive, Clone, Copy, PartialEq, Eq)]
 pub enum Gearset {
 	/// 6:1 gearing, 600RPM, Blue gear set
 	Blue = motor_gearset_e_E_MOTOR_GEARSET_06,
