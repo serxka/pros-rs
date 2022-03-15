@@ -3,10 +3,10 @@ rust bindings and environment for the vex pros open source kernel, very much a w
 
 ## Priorities
 Priorities for bindings and getting things working
-- [ ] FreeRTOS
+- [x] FreeRTOS
 	- [x] Tasks
 	- [x] Atomics
-	- [ ] Mutexes
+	- [x] Mutexes
 - [x] Controllers
 - [x] Motors (documentation needed)
 - [ ] Sensors
