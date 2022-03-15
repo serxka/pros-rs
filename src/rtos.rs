@@ -137,9 +137,37 @@ pub fn spawn<F: FnOnce() + Send + 'static>(f: F) -> Task {
 	TaskBuilder::new().spawn(f).expect("failed to spawn task")
 }
 
+struct MutexInner {
+	ptr: *mut libc::c_void,
+}
+
+impl MutexInner {
+	pub fn new() -> MutexInner {
+		let ptr = unsafe { bindings::mutex_create() };
+		if ptr == core::ptr::null_mut() {
+			panic!("failed to create mutex");
+		}
+		MutexInner { ptr }
+	}
+
+	pub fn take(&self, timeout: u32) -> bool {
+		unsafe { bindings::mutex_take(self.ptr, timeout) }
+	}
+
+	pub fn give(&self) -> bool {
+		unsafe { bindings::mutex_give(self.ptr) }
+	}
+}
+
+impl Drop for MutexInner {
+	fn drop(&mut self) {
+		unsafe { bindings::mutex_delete(self.ptr) };
+	}
+}
+
 /// A mutual exclusion primitive useful for protecting shared date.
 pub struct Mutex<T: ?Sized> {
-	mutex: *mut libc::c_void,
+	mutex: MutexInner,
 	data: UnsafeCell<T>,
 }
 
@@ -158,13 +186,8 @@ impl<T> Mutex<T> {
 	/// let mutex = Mutex::new(0);
 	/// ```
 	pub fn new(t: T) -> Mutex<T> {
-		let m = unsafe { bindings::mutex_create() };
-		if m == core::ptr::null_mut() {
-			panic!("failed to create mutex");
-		}
-
 		Mutex {
-			mutex: m,
+			mutex: MutexInner::new(),
 			data: UnsafeCell::new(t),
 		}
 	}
@@ -198,24 +221,20 @@ impl<T: ?Sized> Mutex<T> {
 	/// This function will return an error if the Mutex was unable to be
 	/// obtained, either due to an error or a timeout.
 	pub fn lock_timeout(&self, timeout: u32) -> Result<MutexGuard<'_, T>, ()> {
-		unsafe {
-			if bindings::mutex_take(self.mutex, timeout) {
-				Ok(MutexGuard { lock: &self })
-			} else {
-				Err(())
-			}
+		if self.mutex.take(timeout) {
+			Ok(MutexGuard { lock: &self })
+		} else {
+			Err(())
 		}
 	}
 
-	// /// Consumes this mutex, returning the underlying data.
-	// pub fn into_inner(self) -> T
-	// where
-	// 	T: Sized,
-	// {
-	// 	let Mutex { mutex, data } = self;
-	// 	unsafe { bindings::mutex_delete(mutex) };
-	// 	data.into_inner()
-	// }
+	/// Consumes this mutex, returning the underlying data.
+	pub fn into_inner(self) -> T
+	where
+		T: Sized,
+	{
+		self.data.into_inner()
+	}
 
 	/// Returns a mutable reference to the underlying data.
 	///
@@ -223,12 +242,6 @@ impl<T: ?Sized> Mutex<T> {
 	/// take place, we are the only one with it.
 	pub fn get_mut(&mut self) -> &mut T {
 		self.data.get_mut()
-	}
-}
-
-impl<T: ?Sized> Drop for Mutex<T> {
-	fn drop(&mut self) {
-		unsafe { bindings::mutex_delete(self.mutex) };
 	}
 }
 
@@ -275,9 +288,7 @@ impl<T: ?Sized> DerefMut for MutexGuard<'_, T> {
 
 impl<T: ?Sized> Drop for MutexGuard<'_, T> {
 	fn drop(&mut self) {
-		unsafe {
-			assert!(bindings::mutex_give(self.lock.mutex));
-		}
+		assert!(self.lock.mutex.give());
 	}
 }
 
