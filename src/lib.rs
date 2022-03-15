@@ -12,20 +12,22 @@ pub mod bindings {
 	include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 }
 
+#[macro_use]
 pub mod macros;
 pub mod robot;
-pub mod util;
-
-/*pub(crate)*/
-mod device;
 pub mod rtos;
+pub mod util;
 
 pub mod prelude {
 	pub use crate::robot::Robot;
 	pub use libc_print::std_name::*;
 }
 
-pub use device::{controller::*, motor::*, GenericError};
+mod device;
+
+pub use device::{
+	controller::*, imu::*, motor::*, rotation::*, Direction, GenericError,
+};
 
 // LANGUAGE ITEMS
 use core::alloc::{GlobalAlloc, Layout};

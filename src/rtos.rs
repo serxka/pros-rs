@@ -100,7 +100,8 @@ impl TaskBuilder {
 			.clamp(Task::PRIORITY_MIN, Task::PRIORITY_MAX);
 		let name = to_cstring(self.name.unwrap_or_else(|| String::from(" ")));
 
-		// take our F closure as a boxed argument for our static method to run as task function
+		// take our F closure as a boxed argument for our static method to run
+		// as task function
 		extern "C" fn run<F: FnOnce()>(arg: *mut libc::c_void) {
 			let boxed_cb = unsafe { Box::from_raw(arg as *mut F) };
 			boxed_cb();

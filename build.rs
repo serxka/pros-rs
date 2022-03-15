@@ -177,6 +177,7 @@ const WHITELIST_FUNCTIONS: &[&str] = &[
 	"rotation_set_reversed",
 	"rotation_reverse",
 	"rotation_get_reversed",
+	"rotation_set_data_rate",
 	"delay",
 	"millis",
 	"micros",
