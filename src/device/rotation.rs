@@ -88,7 +88,9 @@ impl RotationSensor {
 		)
 	}
 
-	/// TODO(check behavior)
+	/// This will update the current direction in the rotation sensor to be
+	/// considered as the forwards direction. This will not reverse the
+	/// currently stored value in the sensor.
 	pub fn set_direction(
 		&mut self,
 		direction: Direction,
@@ -102,7 +104,7 @@ impl RotationSensor {
 		Ok(())
 	}
 
-	/// TODO(check behavior)
+	/// Check which direction is currently considered as forward.
 	pub fn get_direction(&self) -> Result<Direction, RotationError> {
 		let rev = pros_unsafe_err!(
 			rotation_get_reversed,

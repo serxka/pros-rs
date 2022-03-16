@@ -1,5 +1,5 @@
 use crate::bindings::*;
-use crate::util::{get_errno, Port, PROS_ERR, PROS_ERR_U32};
+use crate::util::{get_errno, Port, PROS_ERR, PROS_ERR_F, PROS_ERR_U32};
 
 /// Possible errors that could be returned from IMU function calls
 pub enum IMUError {
@@ -28,14 +28,22 @@ impl IMUError {
 
 /// A three dimensional vector for storing any types of values.
 #[repr(C)]
+#[derive(Debug, Clone, Copy)]
 pub struct Vec3 {
 	pub x: f64,
 	pub y: f64,
 	pub z: f64,
 }
 
-pub type RotationRate = Vec3;
-pub type Acceleration = Vec3;
+/// A quaterion for storing rotations
+#[repr(C, packed)]
+#[derive(Debug, Clone, Copy)]
+pub struct Quaternion {
+	pub x: f64,
+	pub y: f64,
+	pub z: f64,
+	pub w: f64,
+}
 
 /// A struct which holds and presents a connected Inertial measurement unit
 /// connected to the V5 brain
@@ -67,12 +75,60 @@ impl IMU {
 		unimplemented!()
 	}
 
-	pub fn get_gyro_rate(&self) -> Result<RotationRate, IMUError> {
-		unimplemented!()
+	/// Get a processed value for the rotation of the IMU sensor as a
+	/// quaternion.
+	pub fn get_quaternion(&self) -> Result<Quaternion, IMUError> {
+		let res = unsafe { imu_get_quaternion(self.get_port()) };
+		if res.x == PROS_ERR_F
+			&& res.y == PROS_ERR_F
+			&& res.z == PROS_ERR_F
+			&& res.w == PROS_ERR_F
+		{
+			Err(IMUError::errno())
+		} else {
+			Ok(Quaternion {
+				x: res.x,
+				y: res.y,
+				z: res.z,
+				w: res.w,
+			})
+		}
 	}
 
-	pub fn get_acceleration(&self) -> Result<Acceleration, IMUError> {
-		unimplemented!()
+	/// Read the raw values from the gryoscope. This is the rate at which it is
+	/// turning.
+	pub fn get_gyro_rate(&self) -> Result<Vec3, IMUError> {
+		let res = unsafe { imu_get_gyro_rate(self.get_port()) };
+		if res.x == PROS_ERR_F && res.y == PROS_ERR_F && res.z == PROS_ERR_F {
+			Err(IMUError::errno())
+		} else {
+			Ok(Vec3 {
+				x: res.x,
+				y: res.y,
+				z: res.z,
+			})
+		}
+	}
+
+	/// Read all three of the raw values for IMU sensors accelerometer axes.
+	pub fn get_acceleration(&self) -> Result<Vec3, IMUError> {
+		let res = unsafe { imu_get_accel(self.get_port()) };
+		if res.x == PROS_ERR_F && res.y == PROS_ERR_F && res.z == PROS_ERR_F {
+			Err(IMUError::errno())
+		} else {
+			Ok(Vec3 {
+				x: res.x,
+				y: res.y,
+				z: res.z,
+			})
+		}
+	}
+
+	/// Reset the current rotation of the IMU sensor to 0. This will zero the
+	/// rotation quaternion stored internally.
+	pub fn tare(&self) -> Result<(), IMUError> {
+		pros_unsafe_err!(imu_tare, err = IMUError, self.get_port())?;
+		Ok(())
 	}
 
 	/// Check to see if the IMU sensor is calibrating
