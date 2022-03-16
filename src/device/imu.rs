@@ -2,6 +2,7 @@ use crate::bindings::*;
 use crate::util::{get_errno, Port, PROS_ERR, PROS_ERR_F, PROS_ERR_U32};
 
 /// Possible errors that could be returned from IMU function calls
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum IMUError {
 	/// The port chosen cannot be configured as an IMU
 	PortNotIMU,
@@ -72,7 +73,8 @@ impl IMU {
 	/// wait until [`IMU::is_calibrating()`] returns false before using any
 	/// other IMU functions.
 	pub fn calibrate(&mut self) -> Result<(), IMUError> {
-		unimplemented!()
+		pros_unsafe_err!(imu_reset, err = IMUError, self.get_port())?;
+		Ok(())
 	}
 
 	/// Get a processed value for the rotation of the IMU sensor as a
@@ -139,7 +141,7 @@ impl IMU {
 				Err(IMUError::Unknown(PROS_ERR))
 			}
 			// We know for sure that it is calibrating
-			s if s == imu_status_e_E_IMU_STATUS_CALIBRATING => Ok(true),
+			s if s & imu_status_e_E_IMU_STATUS_CALIBRATING != 0 => Ok(true),
 			// We probably got 0 meaning it's calibrated, otherwise rubbish
 			// value and we are screwed anyway
 			_ => Ok(false),
