@@ -1,9 +1,12 @@
 //! All of the devices that have implemented interfaces in the PROS API.
 //!
-//! This includes controllers, motors, sensors, Tri-port I/O and legacy ADI
-//! sensors.
+//! This includes controllers, motors and sensors. If you are looking to use the
+//! TriPort expander you should look towards [`TriPort`][crate::ports::TriPort],
+//! which works for internal TriPorts, and into the [`expander`] module for to
+//! be able to create more TriPorts.
 
 pub mod controller;
+pub mod expander;
 pub mod imu;
 pub mod motor;
 pub mod rotation;
@@ -35,6 +38,7 @@ impl DeviceError {
 	pub(crate) fn errno_generic() -> Self {
 		match get_errno() {
 			libc::EACCES => Self::ResourceInUse,
+			libc::ENXIO => Self::PortRange,
 			e => Self::Unknown(e),
 		}
 	}
@@ -75,7 +79,7 @@ pub enum Direction {
 	Reverse,
 }
 
-use crate::ports::Port;
+use crate::ports::{Port, TriPort};
 use controller::Controller;
 
 /// A structure which represents all the possible devices connected to the V5
@@ -106,6 +110,14 @@ pub struct Devices {
 	pub port19: Port,
 	pub port20: Port,
 	pub port21: Port,
+	pub port_a: TriPort,
+	pub port_b: TriPort,
+	pub port_c: TriPort,
+	pub port_d: TriPort,
+	pub port_e: TriPort,
+	pub port_f: TriPort,
+	pub port_g: TriPort,
+	pub port_h: TriPort,
 }
 
 impl Devices {
@@ -144,6 +156,14 @@ impl Devices {
 			port19: Port::new(19),
 			port20: Port::new(20),
 			port21: Port::new(21),
+			port_a: TriPort::new(1, None),
+			port_b: TriPort::new(2, None),
+			port_c: TriPort::new(3, None),
+			port_d: TriPort::new(4, None),
+			port_e: TriPort::new(5, None),
+			port_f: TriPort::new(6, None),
+			port_g: TriPort::new(7, None),
+			port_h: TriPort::new(8, None),
 		}
 	}
 }

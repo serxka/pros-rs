@@ -16,7 +16,7 @@ Priorities for bindings and getting things working
 	- [ ] Optical sensor
 	- [ ] Vision sensor
 	- [ ] GPS sensor
-- [ ] ADI (TriPort)
+- [x] ADI (TriPort)
 - [ ] Proper low alloc cstring interop
 - [ ] Testing
 - [ ] Display, GUI (home rolled immediate mode?)

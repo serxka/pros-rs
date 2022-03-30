@@ -1,7 +1,7 @@
 //! Contains types for managing the ports on the V5 Brain.
 
 use crate::bindings::*;
-use crate::devices::{imu::*, motor::*, rotation::*, Direction};
+use crate::devices::{imu::*, motor::*, rotation::*, DeviceError, Direction};
 
 use core::num::NonZeroU8;
 
@@ -35,6 +35,16 @@ impl Port {
 			"This port value is not within the range of 1..=21 ({})",
 			port
 		);
+		Port(NonZeroU8::new_unchecked(port))
+	}
+
+	/// Create a new port without checking the range at all. The purpose of this
+	/// function is to be able to create references to internal ports.
+	///
+	/// # Safety
+	/// The user must make sure this value is not 0, and it is a valid port on
+	/// the V5.
+	pub(crate) unsafe fn new_unchecked(port: u8) -> Self {
 		Port(NonZeroU8::new_unchecked(port))
 	}
 
@@ -144,4 +154,221 @@ impl From<v5_device_e_t> for DeviceType {
 			x => Self::Unknown(x),
 		}
 	}
+}
+
+/// An object of a TriPort on the V5 Brain.
+///
+/// This is an object which should not be created by hand in most cases. It uses
+/// ownership semantics at runtime to help make sure a port is not used for more
+/// than one device. It also uses types to make a port is isn't use for more
+/// than one purpose.
+#[derive(Debug)]
+pub struct TriPort {
+	port: NonZeroU8,
+	ext_port: Port,
+}
+
+impl TriPort {
+	/// Creates a new TriPort object, this object should then be converted into
+	/// the specific type which it will be used for.
+	///
+	/// If `ext_port` is `None` then the internal TriPorts will be used,
+	/// otherwise an TriPort expander will be used as the interface.
+	///
+	/// # Assertions
+	/// Asserts that the new TriPort is within a valid range.
+	///
+	/// # Safety
+	/// The users must make sure there is not more than one TriPort object
+	/// created for a certain port. The user must also make sure that `ext_port`
+	/// is a device of [`DeviceType::Adi`].
+	pub unsafe fn new(port: u8, ext_port: Option<Port>) -> Self {
+		assert!(
+			(1..=8).contains(&port),
+			"This port value is not within the range of 1..=8 ({})",
+			port
+		);
+
+		TriPort {
+			port: NonZeroU8::new_unchecked(port),
+			// Port 22 is the internal ADI expander port
+			ext_port: ext_port.unwrap_or(Port::new_unchecked(22)),
+		}
+	}
+
+	/// Used internally to set the mode of a port
+	pub(crate) unsafe fn set_mode(&mut self, mode: TriPortMode) -> Result<(), DeviceError> {
+		pros_unsafe_err!(
+			ext_adi_port_set_config,
+			err = DeviceError::errno_generic(),
+			self.ext_port.get(),
+			self.port.get(),
+			mode.into()
+		)?;
+		Ok(())
+	}
+}
+
+pub(crate) enum TriPortMode {
+	AnalogIn,
+	AnalogOut,
+	DigitalIn,
+	DigitalOut,
+	Undefined,
+}
+
+impl From<TriPortMode> for adi_port_config_e_t {
+	fn from(m: TriPortMode) -> Self {
+		match m {
+			TriPortMode::AnalogIn => adi_port_config_e_E_ADI_ANALOG_IN,
+			TriPortMode::AnalogOut => adi_port_config_e_E_ADI_ANALOG_OUT,
+			TriPortMode::DigitalIn => adi_port_config_e_E_ADI_DIGITAL_IN,
+			TriPortMode::DigitalOut => adi_port_config_e_E_ADI_DIGITAL_OUT,
+			TriPortMode::Undefined => adi_port_config_e_E_ADI_TYPE_UNDEFINED,
+		}
+	}
+}
+
+/// A helper trait for converting TriPorts into different modes.
+pub trait TriPortConvert {
+	/// Converts this TriPort object into a
+	/// [`TriPortAnalogIn`][modes::TriPortAnalogIn].
+	///
+	/// # Panics
+	/// This function will panic if the TriPort is no longer connected.
+	fn into_analog_in(self) -> modes::TriPortAnalogIn;
+
+	/// Converts this TriPort object into a
+	/// [`TriPortAnalogOut`][modes::TriPortAnalogOut].
+	///
+	/// # Panics
+	/// This function will panic if the TriPort is no longer connected.
+	fn into_analog_out(self) -> modes::TriPortAnalogOut;
+
+	/// Converts this TriPort object into a
+	/// [`TriPortDigitalIn`][modes::TriPortDigitalIn].
+	///
+	/// # Panics
+	/// This function will panic if the TriPort is no longer connected.
+	fn into_digital_in(self) -> modes::TriPortDigitalIn;
+
+	/// Converts this TriPort object into a
+	/// [`TriPortDigitalOut`][modes::TriPortDigitalOut].
+	///
+	/// # Panics
+	/// This function will panic if the TriPort is no longer connected.
+	fn into_digital_out(self) -> modes::TriPortDigitalOut;
+}
+
+pub mod modes {
+	//! Modes of operations for the TriPorts.
+
+	use super::{TriPort, TriPortConvert, TriPortMode};
+	use crate::bindings::*;
+
+	// [`ext_adi_port_get_value()`] cannot fail, as such the function doesn't return
+	// an error. Since the only possible error for writing is that the port is it's
+	// not connected, we don't care about those errors as there is no guarantee the
+	// signal will actually arrive.
+
+	impl TriPortConvert for TriPort {
+		fn into_analog_in(self) -> TriPortAnalogIn {
+			unsafe {
+				self.set_mode(TriPortMode::AnalogIn).unwrap();
+			}
+			TriPortAnalogIn(self)
+		}
+		fn into_analog_out(self) -> TriPortAnalogOut {
+			unsafe {
+				self.set_mode(TriPortMode::AnalogOut).unwrap();
+			}
+			TriPortAnalogOut(self)
+		}
+		fn into_digital_in(self) -> TriPortDigitalIn {
+			unsafe {
+				self.set_mode(TriPortMode::DigitalIn).unwrap();
+			}
+			TriPortDigitalIn(self)
+		}
+		fn into_digital_out(self) -> TriPortDigitalOut {
+			unsafe {
+				self.set_mode(TriPortMode::DigitalOut).unwrap();
+			}
+			TriPortDigitalOut(self)
+		}
+	}
+
+	/// Wrapping of a TriPort, limiting it to being a single analog input.
+	pub struct TriPortAnalogIn(TriPort);
+	impl TriPortAnalogIn {
+		/// Read an analog value from the TriPort. The TriPort has a 12-bit ADC
+		/// which means this value will be between 0 - 4095.
+		pub fn read(&self) -> i32 {
+			unsafe { ext_adi_port_get_value(self.0.ext_port.get(), self.0.port.get()) }
+		}
+	}
+
+	/// Wrapping of a TriPort, limiting it to being a single analog output.
+	pub struct TriPortAnalogOut(TriPort);
+	impl TriPortAnalogOut {
+		/// Write an analog value to the TriPort. Valid analog values are
+		/// between 0 - 4095.
+		pub fn write(&mut self, value: u16) {
+			unsafe {
+				ext_adi_port_set_value(self.0.ext_port.get(), self.0.port.get(), value as i32);
+			}
+		}
+	}
+
+	/// Wrapping of a TriPort, limiting it to being a single digital input.
+	pub struct TriPortDigitalIn(TriPort);
+	impl TriPortDigitalIn {
+		/// Read a digital value from the TriPort. This value is either `HIGH`
+		/// which is represented by a `true` value or `LOW` which is represented
+		/// by a `false`.
+		pub fn read(&self) -> bool {
+			let res = unsafe { ext_adi_port_get_value(self.0.ext_port.get(), self.0.port.get()) };
+			if res == crate::util::PROS_ERR || res == 0 {
+				false
+			} else {
+				true
+			}
+		}
+	}
+
+	/// Wrapping of a TriPort, limiting it to being a single digital output.
+	pub struct TriPortDigitalOut(TriPort);
+	impl TriPortDigitalOut {
+		/// Write either `HIGH` or `LOW` to the TriPort, represented by `true`
+		/// and `false` respectively.
+		pub fn write(&mut self, value: bool) {
+			unsafe {
+				ext_adi_port_set_value(self.0.ext_port.get(), self.0.port.get(), value as i32);
+			}
+		}
+	}
+
+	macro_rules! impl_triport_convert {
+		($tri:tt) => {
+			impl TriPortConvert for $tri {
+				fn into_analog_in(self) -> TriPortAnalogIn {
+					self.0.into_analog_in()
+				}
+				fn into_analog_out(self) -> TriPortAnalogOut {
+					self.0.into_analog_out()
+				}
+				fn into_digital_in(self) -> TriPortDigitalIn {
+					self.0.into_digital_in()
+				}
+				fn into_digital_out(self) -> TriPortDigitalOut {
+					self.0.into_digital_out()
+				}
+			}
+		};
+	}
+
+	impl_triport_convert!(TriPortAnalogIn);
+	impl_triport_convert!(TriPortAnalogOut);
+	impl_triport_convert!(TriPortDigitalIn);
+	impl_triport_convert!(TriPortDigitalOut);
 }
