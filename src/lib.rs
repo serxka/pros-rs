@@ -66,7 +66,7 @@ pub mod prelude {
 	pub use crate::ports::*;
 	pub use crate::rtos::{Instant, Mutex};
 	pub use crate::Robot;
-	pub use crate::{devices::controller::*, devices::motor::*};
+	pub use crate::{devices::controller::*, devices::motor::*, devices::Devices};
 	pub use core::time::Duration;
 	pub use libc_print::std_name::*;
 }
