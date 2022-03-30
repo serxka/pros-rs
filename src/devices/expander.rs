@@ -37,15 +37,15 @@ impl TriPortExpander {
 	/// will result in undefined behaviour and/or panics.
 	pub unsafe fn new(port: Port) -> Self {
 		TriPortExpander {
+			a: Some(TriPort::new(1, Some(port.clone()))),
+			b: Some(TriPort::new(2, Some(port.clone()))),
+			c: Some(TriPort::new(3, Some(port.clone()))),
+			d: Some(TriPort::new(4, Some(port.clone()))),
+			e: Some(TriPort::new(5, Some(port.clone()))),
+			f: Some(TriPort::new(6, Some(port.clone()))),
+			g: Some(TriPort::new(7, Some(port.clone()))),
+			h: Some(TriPort::new(8, Some(port.clone()))),
 			port,
-			a: Some(TriPort::new(1, Some(port))),
-			b: Some(TriPort::new(2, Some(port))),
-			c: Some(TriPort::new(3, Some(port))),
-			d: Some(TriPort::new(4, Some(port))),
-			e: Some(TriPort::new(5, Some(port))),
-			f: Some(TriPort::new(6, Some(port))),
-			g: Some(TriPort::new(7, Some(port))),
-			h: Some(TriPort::new(8, Some(port))),
 		}
 	}
 }

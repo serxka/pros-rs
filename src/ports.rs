@@ -48,6 +48,10 @@ impl Port {
 		Port(NonZeroU8::new_unchecked(port))
 	}
 
+	pub(crate) unsafe fn clone(&self) -> Self {
+		Port(self.0.clone())
+	}
+
 	/// Get the value for the port as a `u8` value.
 	#[inline]
 	pub fn get(&self) -> u8 {
@@ -198,13 +202,10 @@ impl TriPort {
 
 	/// Used internally to set the mode of a port
 	pub(crate) unsafe fn set_mode(&mut self, mode: TriPortMode) -> Result<(), DeviceError> {
-		pros_unsafe_err!(
-			ext_adi_port_set_config,
-			err = DeviceError::errno_generic(),
-			self.ext_port.get(),
-			self.port.get(),
-			mode.into()
-		)?;
+		match ext_adi_port_set_config(self.ext_port.get(), self.port.get(), mode.into()) {
+			crate::util::PROS_ERR => Err(DeviceError::errno_generic()),
+			x => Ok(x),
+		}?;
 		Ok(())
 	}
 }
@@ -214,7 +215,6 @@ pub(crate) enum TriPortMode {
 	AnalogOut,
 	DigitalIn,
 	DigitalOut,
-	Undefined,
 }
 
 impl From<TriPortMode> for adi_port_config_e_t {
@@ -224,7 +224,6 @@ impl From<TriPortMode> for adi_port_config_e_t {
 			TriPortMode::AnalogOut => adi_port_config_e_E_ADI_ANALOG_OUT,
 			TriPortMode::DigitalIn => adi_port_config_e_E_ADI_DIGITAL_IN,
 			TriPortMode::DigitalOut => adi_port_config_e_E_ADI_DIGITAL_OUT,
-			TriPortMode::Undefined => adi_port_config_e_E_ADI_TYPE_UNDEFINED,
 		}
 	}
 }
@@ -272,25 +271,25 @@ pub mod modes {
 	// signal will actually arrive.
 
 	impl TriPortConvert for TriPort {
-		fn into_analog_in(self) -> TriPortAnalogIn {
+		fn into_analog_in(mut self) -> TriPortAnalogIn {
 			unsafe {
 				self.set_mode(TriPortMode::AnalogIn).unwrap();
 			}
 			TriPortAnalogIn(self)
 		}
-		fn into_analog_out(self) -> TriPortAnalogOut {
+		fn into_analog_out(mut self) -> TriPortAnalogOut {
 			unsafe {
 				self.set_mode(TriPortMode::AnalogOut).unwrap();
 			}
 			TriPortAnalogOut(self)
 		}
-		fn into_digital_in(self) -> TriPortDigitalIn {
+		fn into_digital_in(mut self) -> TriPortDigitalIn {
 			unsafe {
 				self.set_mode(TriPortMode::DigitalIn).unwrap();
 			}
 			TriPortDigitalIn(self)
 		}
-		fn into_digital_out(self) -> TriPortDigitalOut {
+		fn into_digital_out(mut self) -> TriPortDigitalOut {
 			unsafe {
 				self.set_mode(TriPortMode::DigitalOut).unwrap();
 			}
