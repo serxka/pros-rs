@@ -1,10 +1,17 @@
+//! Functionally relevant to PROS RTOS multitasking, also contains time keeping
+//! and synchronisation primitives.
+
 use crate::bindings;
 use crate::util::*;
 
 use alloc::{boxed::Box, string::String};
-use core::cell::UnsafeCell;
-use core::ops::{Deref, DerefMut};
-use core::time::Duration;
+use core::{
+	cell::UnsafeCell,
+	mem::MaybeUninit,
+	ops::{Deref, DerefMut},
+	sync::atomic::{AtomicBool, Ordering},
+	time::Duration,
+};
 
 pub struct Task {
 	repr: *mut core::ffi::c_void,
@@ -26,8 +33,7 @@ impl Task {
 
 		let name = self.name.unwrap();
 		unsafe {
-			let slice = core::slice::from_raw_parts(name, libc::strlen(name))
-				as &[u8];
+			let slice = core::slice::from_raw_parts(name, libc::strlen(name)) as &[u8];
 			core::str::from_utf8(slice).unwrap()
 		}
 	}
@@ -45,6 +51,10 @@ impl Task {
 	}
 }
 
+/// Return an handle to the current task.
+///
+/// # Panics
+/// Panics if a handle to the current task cannot be found.
 pub fn current() -> Task {
 	unsafe {
 		let name = bindings::task_get_name(core::ptr::null_mut());
@@ -133,8 +143,60 @@ impl TaskBuilder {
 	}
 }
 
+/// Spawn a new task with the default stack size and priority.
+///
+/// # Panics
+/// Panics if the task cannot be spawned, refer to [`TaskBuilder::spawn()`]'s
+/// error return type for more possible reasons.
+///
+/// # Examples
+/// ```
+/// // Every 200ms print another message to the serial console.
+/// spawn(|| {
+/// 	let mut i = 1;
+/// 	loop {
+/// 			println!("hello again for it's be {} times hasn't it?", i);
+/// 			delay(Duration::from_millis(200));
+/// 	}
+/// })
+/// ```
 pub fn spawn<F: FnOnce() + Send + 'static>(f: F) -> Task {
 	TaskBuilder::new().spawn(f).expect("failed to spawn task")
+}
+
+pub struct StaticMut<T> {
+	has_init: AtomicBool,
+	item: MaybeUninit<T>,
+}
+
+impl<T> StaticMut<T> {
+	pub const fn new() -> Self {
+		Self {
+			has_init: AtomicBool::new(false),
+			item: MaybeUninit::uninit(),
+		}
+	}
+
+	/// This function will only ever be called once
+	pub fn call_once<F: FnOnce() -> T>(&self, f: F) {
+		let s = unsafe { &mut *(self as *const Self as *mut Self) };
+
+		if s.has_init.load(Ordering::SeqCst) {
+			return;
+		}
+		unsafe {
+			s.item.as_mut_ptr().write(f());
+		}
+		s.has_init.store(true, Ordering::SeqCst);
+	}
+
+	/// Wait for self.item to be set to something with a spinlock
+	pub fn wait(&self) -> &mut T {
+		let s = unsafe { &mut *(self as *const Self as *mut Self) };
+
+		while !s.has_init.load(Ordering::Relaxed) {}
+		unsafe { &mut *s.item.as_mut_ptr() }
+	}
 }
 
 struct MutexInner {
@@ -309,6 +371,16 @@ impl Instant {
 	}
 }
 
+/// Delay the current task for at least however many milliseconds that is stored
+/// in the duration.
+///
+/// # Examples
+/// ```
+/// // Delay the current task from execution for at least 500ms.
+/// delay(Duration::from_millis(500));
+/// // Delay the current task from execution for about 4 seconds.
+/// delay(Duration::from_seconds(4));
+/// ```
 pub fn delay(dur: Duration) {
 	unsafe { bindings::delay(dur.as_millis() as u32) }
 }

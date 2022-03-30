@@ -1,14 +1,24 @@
+/// Used to create a new robot entry point.
+///
+/// # Examples
+/// ```
+/// struct MyRobot;
+/// impl Robot for MyRobot {
+/// 	...
+/// }
+///
+/// robot!(MyRobot);
+/// ```
 #[macro_export]
 macro_rules! robot {
 	($robot:tt) => {
-		// WHAT THE ACTUAL FUCK WHY WON'T TY WORK
-		static mut ROBOT: $crate::util::StaticMut<$robot> =
-			$crate::util::StaticMut::new();
+		static mut ROBOT: $crate::rtos::StaticMut<$robot> = $crate::rtos::StaticMut::new();
 
 		#[no_mangle]
 		extern "C" fn initialize() {
 			$crate::rtos::spawn(|| unsafe {
-				ROBOT.call_once(|| $robot::new());
+				let devices = $crate::devices::Devices::new();
+				ROBOT.call_once(|| $robot::new(devices));
 			});
 		}
 
@@ -36,12 +46,12 @@ macro_rules! robot {
 
 #[macro_export]
 macro_rules! pros_unsafe_err {
-	($fn:ident, err = $err:ident) => {
+	($fn:ident, err = $err:expr) => {
 		pros_unsafe_err!($fn, err = $err,)
 	};
-	($fn:ident, err = $err:ident, $($x:expr),*) => {
+	($fn:ident, err = $err:expr, $($x:expr),*) => {
 		match unsafe { $fn ( $($x,)* ) } {
-			$crate::util::PROS_ERR => Err($err :: errno()),
+			$crate::util::PROS_ERR => Err($err),
 			x => Ok(x)
 		}
 	};
@@ -49,12 +59,12 @@ macro_rules! pros_unsafe_err {
 
 #[macro_export]
 macro_rules! pros_unsafe_err_bool {
-	($fn:ident, err = $err:ident) => {
+	($fn:ident, err = $err:expr) => {
 		pros_unsafe_err_bool!($fn, err = $err,)
 	};
-	($fn:ident, err = $err:ident, $($x:expr),*) => {
+	($fn:ident, err = $err:expr, $($x:expr),*) => {
 		match unsafe { $fn ( $($x,)* ) } {
-			$crate::util::PROS_ERR => Err($err :: errno()),
+			$crate::util::PROS_ERR => Err($err),
 			1 => Ok(true),
 			0 => Ok(false),
 			_ => unreachable!(),
@@ -64,12 +74,12 @@ macro_rules! pros_unsafe_err_bool {
 
 #[macro_export]
 macro_rules! pros_unsafe_err_u32 {
-	($fn:ident, err = $err:ident) => {
+	($fn:ident, err = $err:expr) => {
 		pros_unsafe_err_u32!($fn, err = $err,)
 	};
-	($fn:ident, err = $err:ident, $($x:expr),*) => {
+	($fn:ident, err = $err:expr, $($x:expr),*) => {
 		match unsafe { $fn ( $($x,)* ) } {
-			$crate::util::PROS_ERR_U32 => Err($err :: errno()),
+			$crate::util::PROS_ERR_U32 => Err($err),
 			x => Ok(x)
 		}
 	};
@@ -77,14 +87,14 @@ macro_rules! pros_unsafe_err_u32 {
 
 #[macro_export]
 macro_rules! pros_unsafe_err_f {
-	($fn:ident, err = $err:ident) => {
+	($fn:ident, err = $err:expr) => {
 		pros_unsafe_err_f!($fn, err = $err,)
 	};
-	($fn:ident, err = $err:ident, $($x:expr),*) => {
+	($fn:ident, err = $err:expr, $($x:expr),*) => {
 		{
 			let res = unsafe { $fn ( $($x,)* ) };
 			if res == $crate::util::PROS_ERR_F {
-				Err($err :: errno())
+				Err($err)
 			} else {
 				Ok(res)
 			}

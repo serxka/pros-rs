@@ -11,7 +11,7 @@ Priorities for bindings and getting things working
 - [x] Motors (documentation needed)
 - [ ] Sensors
 	- [x] Rotation sensor (documentation needed)
-	- [ ] IMU
+	- [x] IMU
 	- [ ] Distance sensor
 	- [ ] Optical sensor
 	- [ ] Vision sensor
