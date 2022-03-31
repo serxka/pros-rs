@@ -63,10 +63,10 @@ pub mod ports;
 pub mod prelude {
 	//! Common types and macros that can all be conveniently imported at once.
 
+	pub use crate::devices::{controller::*, motor::*, DeviceError, Devices};
 	pub use crate::ports::*;
 	pub use crate::rtos::{Instant, Mutex};
 	pub use crate::Robot;
-	pub use crate::{devices::controller::*, devices::motor::*, devices::Devices};
 	pub use core::time::Duration;
 	pub use libc_print::std_name::*;
 }
