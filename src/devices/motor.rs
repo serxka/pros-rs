@@ -48,7 +48,7 @@ impl Motor {
 	}
 
 	pub fn stop(&mut self) -> Result<(), DeviceError> {
-		self.move_simple(0)
+		self.move_velocity(0)
 	}
 
 	pub fn move_absolute(&mut self, position: f64, velocity: i32) -> Result<(), DeviceError> {
