@@ -196,6 +196,7 @@ const WHITELIST_FUNCTIONS: &[&str] = &[
 	"task_delete",
 	"task_get_by_name",
 	"task_get_count",
+	"task_get_current",
 	"task_get_name",
 	"task_get_priority",
 	"task_get_state",

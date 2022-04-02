@@ -52,22 +52,10 @@ impl Task {
 }
 
 /// Return an handle to the current task.
-///
-/// # Panics
-/// Panics if a handle to the current task cannot be found.
 pub fn current() -> Task {
 	unsafe {
-		let name = bindings::task_get_name(core::ptr::null_mut());
-		let id = bindings::task_get_by_name(name);
-
-		if id == core::ptr::null_mut() {
-			panic!("failed to get current thread!");
-		}
-
-		Task {
-			repr: id,
-			name: Some(name),
-		}
+		let repr = bindings::task_get_current();
+		Task { repr, name: None }
 	}
 }
 
