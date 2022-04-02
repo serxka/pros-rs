@@ -48,7 +48,7 @@ impl Motor {
 	}
 
 	pub fn stop(&mut self) -> Result<(), DeviceError> {
-		self.move_simple(0)
+		self.move_velocity(0)
 	}
 
 	pub fn move_absolute(&mut self, position: f64, velocity: i32) -> Result<(), DeviceError> {
@@ -80,11 +80,10 @@ impl Motor {
 		// correctly
 		#[cfg(debug_assertions)]
 		match self.get_gearing()? {
-			Gearset::Blue => assert!(velocity >= 600 && velocity <= 600),
-			Gearset::Green => assert!(velocity >= 200 && velocity <= 200),
-			Gearset::Red => assert!(velocity >= 100 && velocity <= 100),
+			Gearset::Blue => assert!(velocity >= -600 && velocity <= 600),
+			Gearset::Green => assert!(velocity >= -200 && velocity <= 200),
+			Gearset::Red => assert!(velocity >= -100 && velocity <= 100),
 		}
-		assert!(velocity != 0);
 		pros_unsafe_err!(
 			motor_move_velocity,
 			err = DeviceError::errno_motor(),
