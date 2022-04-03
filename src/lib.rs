@@ -1,9 +1,10 @@
 #![no_std]
 #![feature(alloc_error_handler)]
 #![feature(negative_impls)]
+#![feature(const_option)]
 
 //! # PROS bindings
-//! This library contains safe Rust bindings for the Vex PROS environment. If it should be used in conjunction with this template crate [github.com/serxka/pros-rs-template](https://github.com/serxka/pros-rs-template).
+//! This library contains safe Rust bindings for the Vex PROS environment. It should be used in conjunction with this template crate [github.com/serxka/pros-rs-template](https://github.com/serxka/pros-rs-template).
 //!
 //! This library is currently a work in progress, expect breaking API changes or
 //! undefined behaviour, or just straight up missing features.
@@ -24,14 +25,6 @@
 //! 		println!("Hello World!");
 //! 		VexRobot
 //! 	}
-//!
-//! 	fn competition_init(&mut self) {}
-//!
-//! 	fn disabled(&mut self) {}
-//!
-//! 	fn autonomous(&mut self) {}
-//!
-//! 	fn opcontrol(&mut self) {}
 //! }
 //! robot!(VexRobot);
 //! ```
@@ -54,8 +47,9 @@ pub mod bindings {
 	include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 }
 
+#[doc(hidden)]
 #[macro_use]
-mod macros;
+pub mod macros;
 mod util;
 
 pub mod devices;
@@ -65,7 +59,11 @@ pub mod prelude {
 
 	pub use crate::devices::{controller::*, motor::*, DeviceError, Devices};
 	pub use crate::ports::*;
-	pub use crate::rtos::{Instant, Mutex};
+	pub use crate::rtos::{
+		tasks::{CompetitionState, CompetitionTask, Task},
+		time::{Instant, Interval},
+		Mutex,
+	};
 	pub use crate::Robot;
 	pub use core::time::Duration;
 	pub use libc_print::std_name::*;
@@ -90,39 +88,27 @@ pub trait Robot {
 	/// The entry point to the users program, a structure containing owned
 	/// values to every possible device is passed into this function. The ports
 	/// that will be needed throughout the whole of the programs execution
-	/// should be moved and call the relevant `into_<>` function to convert them
-	/// into specific devices.
+	/// should be moved and called with the relevant `into_<>` function to
+	/// convert them into specific devices.
 	///
-	/// [`Robot::new()`]
-	/// should ideally return as soon as possible to allow operator control and
-	/// autonomous code to run as soon as possible. This means keeping the
-	/// initialisation code lean and not waiting for sensor to be calibrated but
-	/// rather doing that in another task.
+	/// [`Robot::new()`] should ideally return as soon as possible to allow
+	/// operator control and autonomous code to run as soon as possible. This
+	/// means keeping the initialisation code lean and not waiting around
+	/// collecting sensor data. Collection of sensor data should be performed
+	/// from another task.
 	fn new(devices: devices::Devices) -> Self;
 
-	/// Runs afters [`Robot::new()`] and before autonomous when connected the
-	/// Field Management System or VEX Competition Switch. This is meant for
-	/// competition specific initialisation routines, such as an autonomous
-	/// selector. This task will exit when the robot is enabled and
-	/// autonomous/opcontrol starts.
-	fn competition_init(&self);
+	#[allow(unused_variables)]
+	fn competition_init(&'static self, state: rtos::tasks::CompetitionState) {}
 
-	/// Runs while the robot is in the disabled state of the Field Management
-	/// System or VEX Competition Switch. When the robot is enabled again this
-	/// function will exit.
-	fn disabled(&self);
+	#[allow(unused_variables)]
+	fn disabled(&'static self, state: rtos::tasks::CompetitionState) {}
 
-	/// Runs the user autonomous code. If the robot is disabled or communication
-	/// is lost this function will exit. Re-enabling the robot will recall this
-	/// function, it will not re-continue from where it was last.
-	fn autonomous(&self);
+	#[allow(unused_variables)]
+	fn autonomous(&'static self, state: rtos::tasks::CompetitionState) {}
 
-	/// Runs the user operator control code. If no competition control is
-	/// connected this function will run immediately after [`Robot::new()`] has
-	/// returned. If the robot is disabled or communication is lost this
-	/// function will exit. Re-enabling the robot will recall this function, it
-	/// will not re-continue from where it was last.
-	fn opcontrol(&self);
+	#[allow(unused_variables)]
+	fn opcontrol(&'static self, state: rtos::tasks::CompetitionState) {}
 }
 
 // LANGUAGE ITEMS

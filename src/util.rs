@@ -13,6 +13,7 @@ pub fn get_errno() -> libc::c_int {
 	unsafe { *__errno() }
 }
 
+#[allow(unused)]
 pub fn cstring_from(cstr: *const libc::c_char) -> String {
 	unsafe {
 		String::from_utf8_lossy(core::slice::from_raw_parts(

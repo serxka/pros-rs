@@ -91,7 +91,11 @@ pub struct Devices {
 	pub master_controller: Option<Controller>,
 	/// Secondary Controller
 	pub slave_controller: Option<Controller>,
+	/// List of all ports on the V5 Brain. This array is zero indexed, however
+	/// the 0th index is port 1.
 	pub ports: [Option<Port>; 21],
+	/// List of all tri-ports on the V5 Brain. This array is zero indexed, with
+	/// the 0th index being port A and 7th index being port H.
 	pub triports: [Option<TriPort>; 8],
 }
 
@@ -123,5 +127,64 @@ impl Devices {
 			ports: ports.into_inner().unwrap(),
 			triports: triports.into_inner().unwrap(),
 		}
+	}
+
+	/// Takes the master controller out of this [`Device`] structure.
+	///
+	/// # Panics
+	/// This function will panic if the master controller has already been
+	/// taken.
+	pub fn take_master_controller(&mut self) -> Controller {
+		self.master_controller.take().unwrap()
+	}
+
+	/// Takes the slave controller out of this [`Device`] structure.
+	///
+	/// # Panics
+	/// This function will panic if the slave controller has already been taken.
+	pub fn take_slave_controller(&mut self) -> Controller {
+		self.slave_controller.take().unwrap()
+	}
+
+	/// Take a Port out of this [`Device`] structure. The index passed to this
+	/// function is the same as that of the port.
+	///
+	/// # Assertions
+	/// Assertion that the port index with the valid range
+	/// for the V5 Brain.
+	///
+	/// # Panics
+	/// This function will panic if the port has already been taken.
+	///
+	/// # Examples
+	/// ```
+	/// let port = devices.take_port(1);
+	/// assert_eq!(1, port.get());
+	/// ```
+	pub fn take_port(&mut self, index: usize) -> Port {
+		assert!(
+			(1..=21).contains(&index),
+			"This port value is not within the range of 1..=21 ({})",
+			index
+		);
+		self.ports[index + 1].take().unwrap()
+	}
+
+	/// Take a TriPort out of this [`Device`] structure. The index passed to
+	/// this function is the same as that of the port.
+	///
+	/// # Assertions
+	/// Assertions that the port index with the valid range
+	/// for the V5 Brain.
+	///
+	/// # Panics
+	/// This function will panic if the port has already been taken.
+	pub fn take_triport(&mut self, index: usize) -> TriPort {
+		assert!(
+			(1..=8).contains(&index),
+			"This port value is not within the range of 1..=8 ({})",
+			index
+		);
+		self.triports[index + 1].take().unwrap()
 	}
 }

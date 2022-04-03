@@ -279,15 +279,25 @@ dependencies = [
 
 [[package]]
 name = "pros"
-version = "0.2.2"
+version = "0.3.0-beta.1"
 dependencies = [
  "bindgen",
  "bitflags",
  "libc",
  "libc-print",
  "math",
+ "pros_macro",
  "smallvec",
  "zip",
+]
+
+[[package]]
+name = "pros_macro"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]
