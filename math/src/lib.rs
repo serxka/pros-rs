@@ -1,37 +1,40 @@
 #![cfg_attr(not(std), no_std)]
+#![allow(unused)]
 
 pub mod mat;
 pub mod quat;
 pub mod vec;
 
-extern "C" {
-	fn sqrt(x: f64) -> f64;
-	fn sqrtf(x: f32) -> f32;
-	fn abs(x: f64) -> f64;
-	fn absf(x: f32) -> f32;
+mod cmath {
+	extern "C" {
+		pub fn sqrt(x: f64) -> f64;
+		pub fn sqrtf(x: f32) -> f32;
+		pub fn abs(x: f64) -> f64;
+		pub fn absf(x: f32) -> f32;
+	}
 }
 
-pub trait Float {
+pub trait FloatMath {
 	fn sqrt(&self) -> Self;
 	fn abs(&self) -> Self;
 }
 
-impl Float for f64 {
+impl FloatMath for f64 {
 	fn sqrt(&self) -> Self {
-		unsafe { sqrt(*self) }
+		unsafe { cmath::sqrt(*self) }
 	}
 
 	fn abs(&self) -> Self {
-		unsafe { abs(*self) }
+		unsafe { cmath::abs(*self) }
 	}
 }
 
-impl Float for f32 {
+impl FloatMath for f32 {
 	fn sqrt(&self) -> Self {
-		unsafe { sqrtf(*self) }
+		unsafe { cmath::sqrtf(*self) }
 	}
 
 	fn abs(&self) -> Self {
-		unsafe { absf(*self) }
+		unsafe { cmath::absf(*self) }
 	}
 }
