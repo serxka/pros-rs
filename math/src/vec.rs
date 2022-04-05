@@ -34,12 +34,12 @@ macro_rules! impl_vec {
 				}
 				/// Creates a new Vector with all components as zero.
 				#[inline]
-				pub const fn zero($( $field: $type, )*) -> Self {
+				pub const fn zero() -> Self {
 					size_match!(Self::new, repeat 0.0, take $num)
 				}
 				/// Creates a new Vector with all components as one.
 				#[inline]
-				pub const fn one($( $field: $type, )*) -> Self {
+				pub const fn one() -> Self {
 					size_match!(Self::new, repeat 1.0, take $num)
 				}
 				/// Calculates a dot product with another vector.
@@ -62,12 +62,16 @@ macro_rules! impl_vec {
 				/// Normalises the vector in place.
 				#[inline]
 				pub fn normalise(&mut self) {
-					*self /= self.mag();
+					*self = self.normalised();
 				}
 				/// Returns a normalised version of the vector.
 				#[inline]
 				pub fn normalised(self) -> Self {
-					self / self.mag()
+					if self == Self::zero() {
+						self
+					} else {
+						self / self.mag()
+					}
 				}
 				/// Returns a new vector with the absolute value of each component.
 				#[inline]
