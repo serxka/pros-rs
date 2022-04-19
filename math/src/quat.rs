@@ -6,4 +6,3 @@ pub struct Quaternion {
 	pub z: f64,
 	pub w: f64,
 }
-

@@ -3,7 +3,7 @@ use crate::devices::DeviceError;
 use crate::ports::Port;
 use crate::util::{PROS_ERR, PROS_ERR_F, PROS_ERR_U32};
 
-use math::{quat::Quaternion, vec::Vec3};
+use math::{quat::Quaternion, vec::DVec3};
 
 /// A struct which holds and presents a connected Inertial measurement unit
 /// connected to the V5 Brain.
@@ -61,7 +61,7 @@ impl IMU {
 
 	/// Read the raw values from the gryoscope. This is the rate at which it is
 	/// turning.
-	pub fn get_gyro_rate(&self) -> Result<Vec3, DeviceError> {
+	pub fn get_gyro_rate(&self) -> Result<DVec3, DeviceError> {
 		let res = unsafe { imu_get_gyro_rate(self.get_port()) };
 		if res.x == PROS_ERR_F && res.y == PROS_ERR_F && res.z == PROS_ERR_F {
 			Err(DeviceError::errno_imu())
@@ -71,7 +71,7 @@ impl IMU {
 	}
 
 	/// Read all three of the raw values for IMU sensors accelerometer axes.
-	pub fn get_acceleration(&self) -> Result<Vec3, DeviceError> {
+	pub fn get_acceleration(&self) -> Result<DVec3, DeviceError> {
 		let res = unsafe { imu_get_accel(self.get_port()) };
 		if res.x == PROS_ERR_F && res.y == PROS_ERR_F && res.z == PROS_ERR_F {
 			Err(DeviceError::errno_imu())
@@ -101,13 +101,9 @@ impl IMU {
 	}
 }
 
-impl From<imu_raw_s> for Vec3 {
-	fn from(f: imu_raw_s) -> Vec3 {
-		Vec3 {
-			x: f.x,
-			y: f.y,
-			z: f.z,
-		}
+impl From<imu_raw_s> for DVec3 {
+	fn from(f: imu_raw_s) -> DVec3 {
+		DVec3::new(f.x, f.y, f.z)
 	}
 }
 

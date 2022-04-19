@@ -5,3 +5,12 @@ version = 3
 [[package]]
 name = "math"
 version = "0.1.0"
+dependencies = [
+ "paste",
+]
+
+[[package]]
+name = "paste"
+version = "1.0.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0c520e05135d6e763148b6426a837e239041653ba7becd2e538c076c738025fc"
