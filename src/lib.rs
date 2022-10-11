@@ -136,13 +136,27 @@ fn alloc_error(layout: Layout) -> ! {
 // TODO: Printing to screen for easy debugging
 #[panic_handler]
 fn panic(info: &core::panic::PanicInfo) -> ! {
-	libc_print::libc_eprintln!("panic has occured: {:?}", info);
+	// Print main text
+	libc_print::libc_eprint!("task panicked at ");
+	// Print panic message
+	if let Some(s) = info.payload().downcast_ref::<&str>() {
+		libc_print::libc_eprint!("'{}', ", s);
+	} else {
+		libc_print::libc_eprint!("<no message>, ");
+	}
+	// Print panic location
+	if let Some(s) = info.location() {
+		libc_print::libc_eprint!("{}:{}", s.file(), s.line());
+	} else {
+		libc_print::libc_eprint!("<unknown location>");
+	}
+	libc_print::libc_eprintln!();
 
 	unsafe {
 		// Go through and stop motors regardless if they are actually motors or not
 		for i in 1..21 {
 			bindings::motor_set_brake_mode(i, devices::motor::BrakeMode::Coast.into());
-			bindings::motor_move(i, 0);
+			bindings::motor_move_velocity(i, 0);
 		}
 
 		libc::exit(1);
