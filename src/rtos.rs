@@ -118,8 +118,8 @@ impl TaskBuilder {
 				name.as_ptr(),
 			);
 			if res == core::ptr::null_mut() {
-				Box::from_raw(arg); // rebox pointer to avoid leak if failed to create task
-					// TODO: error handling
+				_ = Box::from_raw(arg); // rebox pointer to avoid leak if failed to create task
+						// TODO: error handling
 				Err(())
 			} else {
 				Ok(Task {
