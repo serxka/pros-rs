@@ -7,6 +7,7 @@
 
 pub mod controller;
 pub mod expander;
+pub mod gps;
 pub mod imu;
 pub mod motor;
 pub mod rotation;
@@ -53,6 +54,7 @@ impl DeviceError {
 		}
 	}
 
+	/// This also works for the GPS
 	pub(crate) fn errno_imu() -> Self {
 		match get_errno() {
 			libc::ENODEV => Self::PortNotIMU,
