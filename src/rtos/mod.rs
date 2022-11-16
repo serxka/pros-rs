@@ -75,7 +75,7 @@ impl<T: ?Sized> Mutex<T> {
 	///
 	/// The semantics of this function are the exact same as
 	/// [`Mutex::lock_timeout`] however the timeout if infinite.
-	pub fn lock(&self) -> Result<MutexGuard<'_, T>, ()> {
+	pub fn lock(&self) -> Option<MutexGuard<'_, T>> {
 		// A timeout of u32::MAX is the same value as `TIMEOUT_MAX` in PROS and
 		// will block indefinitely
 		self.lock_timeout(u32::MAX)
@@ -95,13 +95,13 @@ impl<T: ?Sized> Mutex<T> {
 	/// Be cautious.
 	///
 	/// # Errors
-	/// This function will return an error if the Mutex was unable to be
-	/// obtained, either due to an error or a timeout.
-	pub fn lock_timeout(&self, timeout: u32) -> Result<MutexGuard<'_, T>, ()> {
+	/// This function will return an option if the Mutex was unable to be
+	/// obtained due to a timeout.
+	pub fn lock_timeout(&self, timeout: u32) -> Option<MutexGuard<'_, T>> {
 		if self.mutex.take(timeout) {
-			Ok(MutexGuard { lock: &self })
+			Some(MutexGuard { lock: &self })
 		} else {
-			Err(())
+			None
 		}
 	}
 

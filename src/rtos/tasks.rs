@@ -40,9 +40,11 @@ impl Task {
 	/// delay(Duration::from_seconds(4));
 	/// ```
 	pub fn delay(dur: Duration) {
-		unsafe { bindings::delay(dur.as_millis() as u32) }
+		unsafe { bindings::task_delay(dur.as_millis() as u32) }
 	}
 
+	/// Get the name of this thread, it is possible that this thread does not
+	/// have name. In this case the string returned will be of zero length.
 	pub fn name<'a>(&mut self) -> &'a str {
 		if self.name.is_none() {
 			self.name = Some(unsafe { bindings::task_get_name(self.repr) });
@@ -55,15 +57,43 @@ impl Task {
 		}
 	}
 
+	/// If this task was previously suspended before it will now considered
+	/// eligible for execution by the RTOS scheduler. This function has no
+	/// effect if the task was not marked as suspended. This does **not**
+	/// necessarily tell the scheduler to run this task immediately.
+	#[doc(alias = "unpark")]
 	pub fn resume(&self) {
 		unsafe {
 			bindings::task_resume(self.repr);
 		}
 	}
 
+	/// Suspend this task from being run by the RTOS scheduler. This task will
+	/// not take CPU time unless it is later called with [`Task::resume()`].
+	#[doc(alias = "park")]
 	pub fn suspend(&self) {
 		unsafe {
 			bindings::task_suspend(self.repr);
+		}
+	}
+
+	/// Block this tasks execution until this task has completed and exited.
+	///
+	/// # Examples
+	/// This code will **always** print in the order "A B C".
+	/// ```
+	/// print!("A ");
+	/// tasks::spawn(|| {
+	/// 	print!("B ");
+	/// }).join();
+	/// println!("C");
+	/// ```
+	pub fn join(&self) {
+		// Nothing happens when we try to join ourselves, but it's important to put an
+		// assert to check we aren't accidentally.
+		assert!(self.repr != Task::current().repr);
+		unsafe {
+			bindings::task_join(self.repr);
 		}
 	}
 
@@ -75,7 +105,7 @@ impl Task {
 unsafe impl Send for Task {}
 unsafe impl Sync for Task {}
 
-/// What state the task is currently as seen by FreeRTOS.
+/// What state the task is in currently as seen by FreeRTOS.
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum TaskState {
 	/// This task is currently running and is actively using CPU time.
@@ -171,9 +201,11 @@ impl TaskBuilder {
 				name.as_ptr(),
 			);
 			if res == core::ptr::null_mut() {
-				Box::from_raw(arg); // rebox pointer to avoid leak if failed to create task
-					// TODO: error handling
-				Err(())
+				_ = Box::from_raw(arg); // rebox pointer to avoid leak if failed to create task
+				Err(()) // TODO: error handling
+				 // The only possible error is failure to allocate memory, this
+				 // is a pretty fatal death in Rust and to try and handle it
+				 // from this point is somewhat redundant.
 			} else {
 				Ok(Task {
 					repr: res,
@@ -196,8 +228,8 @@ impl TaskBuilder {
 /// spawn(|| {
 /// 	let mut i = 1;
 /// 	loop {
-/// 			println!("hello again for it's be {} times hasn't it?", i);
-/// 			delay(Duration::from_millis(200));
+/// 			println!("hello again for... it's be {} times hasn't it?", i);
+/// 			Task::delay(Duration::from_millis(200));
 /// 	}
 /// })
 /// ```
@@ -236,6 +268,8 @@ impl CompetitionState {
 		Self(self.0.clone())
 	}
 
+	/// Check to see if the specific competition task has been completed or
+	/// killed by the Field Management System.
 	pub fn task_done(&'_ self, task: CompetitionTask) -> impl Action + '_ {
 		struct TaskDoneAction<'a>(&'a CompetitionState, CompetitionTask);
 

@@ -129,7 +129,7 @@ impl Devices {
 		}
 	}
 
-	/// Takes the master controller out of this [`Device`] structure.
+	/// Takes the master controller out of this [`Devices`] structure.
 	///
 	/// # Panics
 	/// This function will panic if the master controller has already been
@@ -138,7 +138,7 @@ impl Devices {
 		self.master_controller.take().unwrap()
 	}
 
-	/// Takes the slave controller out of this [`Device`] structure.
+	/// Takes the slave controller out of this [`Devices`] structure.
 	///
 	/// # Panics
 	/// This function will panic if the slave controller has already been taken.
@@ -146,7 +146,7 @@ impl Devices {
 		self.slave_controller.take().unwrap()
 	}
 
-	/// Take a Port out of this [`Device`] structure. The index passed to this
+	/// Take a Port out of this [`Devices`] structure. The index passed to this
 	/// function is the same as that of the port.
 	///
 	/// # Assertions
@@ -170,7 +170,7 @@ impl Devices {
 		self.ports[index + 1].take().unwrap()
 	}
 
-	/// Take a TriPort out of this [`Device`] structure. The index passed to
+	/// Take a TriPort out of this [`Devices`] structure. The index passed to
 	/// this function is the same as that of the port.
 	///
 	/// # Assertions

@@ -26,6 +26,7 @@ pub fn cstring_from(cstr: *const libc::c_char) -> String {
 
 pub fn to_cstring(s: String) -> Vec<u8> {
 	let mut bytes = s.into_bytes();
+	bytes.reserve(bytes.len() + 1);
 	bytes.push(0);
 	bytes
 }

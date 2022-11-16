@@ -58,7 +58,8 @@ macro_rules! robot {
 
 			tasks::spawn(|| {
 				robot.0.autonomous(robot.1.clone());
-			});
+			})
+			.join();
 		}
 
 		#[doc(hidden)]
@@ -70,7 +71,8 @@ macro_rules! robot {
 
 			tasks::spawn(|| {
 				robot.0.opcontrol(robot.1.clone());
-			});
+			})
+			.join();
 		}
 	};
 }

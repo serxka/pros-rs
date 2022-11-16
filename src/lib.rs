@@ -60,6 +60,7 @@ pub mod prelude {
 	pub use crate::devices::{controller::*, motor::*, DeviceError, Devices};
 	pub use crate::ports::*;
 	pub use crate::rtos::{
+		action::{Action, NextSleep, Poll},
 		tasks::{CompetitionState, CompetitionTask, Task},
 		time::{Instant, Interval},
 		Mutex,

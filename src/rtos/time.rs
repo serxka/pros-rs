@@ -5,7 +5,7 @@ use crate::rtos::{
 };
 
 use core::ops::{Add, AddAssign, Sub};
-use core::time::Duration;
+pub use core::time::Duration;
 
 /// A sample of a monotonically nondecreasing clock running from the start of
 /// program execution. Used to represent a point in time of the programs
@@ -83,6 +83,11 @@ impl Instant {
 	#[inline]
 	pub fn frac_micros(&self) -> u64 {
 		self.0 % 1000000
+	}
+
+	#[inline]
+	pub fn as_duration(self) -> Duration {
+		Duration::from_micros(self.0)
 	}
 
 	/// Perform a checked addition of the `rhs` Duration onto this `Instant`.
@@ -200,10 +205,12 @@ impl Interval {
 			// If this gets called it is assumed that we are not yet complete so we must
 			// have some time that we need to wait for.
 			fn next(&self) -> NextSleep {
+				// TODO: Figure out a neat way to use `task_delay_until` instead
 				NextSleep::Timestamp(
 					(self.0.last + self.0.period)
 						.checked_sub_instant(Instant::now())
-						.unwrap(),
+						.map(|i| i.as_duration())
+						.unwrap_or(Duration::from_micros(0)),
 				)
 			}
 		}
