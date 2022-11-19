@@ -68,14 +68,22 @@ pub mod prelude {
 	pub use crate::Robot;
 	pub use core::time::Duration;
 	pub use libc_print::std_name::*;
+	pub use robot_algorithms::prelude::*;
 }
 pub mod rtos;
 
-// Re-export math crate
+// Re-export math
 pub mod math {
-	//! Re-export of the internal math crate for user use.
+	//! Re-export of the internal math for user use.
 
-	pub use math::*;
+	pub use robot_algorithms::math::*;
+}
+
+// Re-export algorithms
+pub mod algorithms {
+	//! Re-export of the internal algorithms for user use.
+
+	pub use robot_algorithms::algorithms::*;
 }
 
 /// This trait is used so that `pros-rs` knows which functions it should call

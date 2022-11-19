@@ -3,7 +3,7 @@ use crate::devices::DeviceError;
 use crate::ports::Port;
 use crate::util::PROS_ERR_F;
 
-use math::vec::{DVec2, DVec3};
+use crate::math::vec::{Vec2, Vec3};
 
 /// A struct which holds and presents a connected Game Positioning System
 /// connected to the V5 Brain.
@@ -13,7 +13,7 @@ pub struct GPS {
 
 #[derive(Debug, Copy, Clone)]
 pub struct State {
-	pub position: DVec2,
+	pub position: Vec2,
 	pub pitch: f64,
 	pub roll: f64,
 	pub yaw: f64,
@@ -44,8 +44,8 @@ impl GPS {
 	/// parameters are interpreted.
 	pub fn initialise(
 		&mut self,
-		offset: DVec2,
-		initial: DVec2,
+		offset: Vec2,
+		initial: Vec2,
 		heading: f64,
 	) -> Result<(), DeviceError> {
 		pros_unsafe_err!(
@@ -63,7 +63,7 @@ impl GPS {
 
 	/// Set the GPS's sensor location offset relative to the centre of the
 	/// robot's turning point in meters.
-	pub fn set_offset(&mut self, offset: DVec2) -> Result<(), DeviceError> {
+	pub fn set_offset(&mut self, offset: Vec2) -> Result<(), DeviceError> {
 		pros_unsafe_err!(
 			gps_set_offset,
 			err = DeviceError::errno_imu(),
@@ -77,7 +77,7 @@ impl GPS {
 	/// Set the robot's location relative to the centre of the field in meters.
 	/// Position is the offset from centre of the field which is marked at (0,
 	/// 0). The heading of the robot is also set in degrees.
-	pub fn set_position(&mut self, position: DVec2, heading: f64) -> Result<(), DeviceError> {
+	pub fn set_position(&mut self, position: Vec2, heading: f64) -> Result<(), DeviceError> {
 		pros_unsafe_err!(
 			gps_set_position,
 			err = DeviceError::errno_imu(),
@@ -171,22 +171,22 @@ impl GPS {
 	}
 
 	/// Get the rate at which the inbuilt IMU is rotating.
-	pub fn get_gyro_rate(&self) -> Result<DVec3, DeviceError> {
+	pub fn get_gyro_rate(&self) -> Result<Vec3, DeviceError> {
 		let res = unsafe { gps_get_gyro_rate(self.get_port()) };
 		if res.x == PROS_ERR_F && res.y == PROS_ERR_F && res.z == PROS_ERR_F {
 			Err(DeviceError::errno_imu())
 		} else {
-			Ok(DVec3::new(res.x, res.y, res.z))
+			Ok(Vec3::new(res.x, res.y, res.z))
 		}
 	}
 
 	/// Get the rate at which the inbuilt IMU is moving.
-	pub fn get_acceleration(&self) -> Result<DVec3, DeviceError> {
+	pub fn get_acceleration(&self) -> Result<Vec3, DeviceError> {
 		let res = unsafe { gps_get_accel(self.get_port()) };
 		if res.x == PROS_ERR_F && res.y == PROS_ERR_F && res.z == PROS_ERR_F {
 			Err(DeviceError::errno_imu())
 		} else {
-			Ok(DVec3::new(res.x, res.y, res.z))
+			Ok(Vec3::new(res.x, res.y, res.z))
 		}
 	}
 }
@@ -194,7 +194,7 @@ impl GPS {
 impl From<gps_status_s> for State {
 	fn from(f: gps_status_s) -> State {
 		State {
-			position: DVec2::new(f.x, f.y),
+			position: Vec2::new(f.x, f.y),
 			pitch: f.pitch,
 			roll: f.roll,
 			yaw: f.yaw,

@@ -12,7 +12,7 @@ path = "src/lib.rs"
 bitflags = "1"
 libc = { version = "0.2", default-features = false }
 libc-print = "0.1"
-math = { path = "./math" }
+robot_algorithms = { git = "https://github.com/nonl4331/robot-algorithms" }
 smallvec = { version = "1.7", features = ["const_new", "const_generics"]}
 pros_macro = { path = "./macros"}
 
