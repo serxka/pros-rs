@@ -169,7 +169,7 @@ impl Devices {
 			"This port value is not within the range of 1..=21 ({})",
 			index
 		);
-		self.ports[index + 1].take().unwrap()
+		self.ports[index - 1].take().unwrap()
 	}
 
 	/// Take a TriPort out of this [`Devices`] structure. The index passed to
@@ -187,6 +187,6 @@ impl Devices {
 			"This port value is not within the range of 1..=8 ({})",
 			index
 		);
-		self.triports[index + 1].take().unwrap()
+		self.triports[index - 1].take().unwrap()
 	}
 }
