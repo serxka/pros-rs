@@ -59,6 +59,17 @@ impl IMU {
 		}
 	}
 
+	/// Get a processed value for the rotation of the IMU sensor as
+	/// total rotations around the Z axis in degrees
+	pub fn get_rotation(&self) -> Result<f64, DeviceError> {
+		let rotation = unsafe { imu_get_rotation(self.get_port()) };
+		if rotation == PROS_ERR_F {
+			Err(DeviceError::errno_imu())
+		} else {
+			Ok(rotation)
+		}
+	}
+
 	/// Read the raw values from the gryoscope. This is the rate at which it is
 	/// turning.
 	pub fn get_gyro_rate(&self) -> Result<Vec3, DeviceError> {
