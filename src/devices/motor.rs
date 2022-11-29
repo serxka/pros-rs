@@ -504,12 +504,12 @@ impl From<EncoderUnits> for motor_encoder_units_e {
 /// calculations internally done and how input values should be interpreted.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Gearset {
-	/// 6:1 gearing, 600RPM, Blue gear set
-	Blue,
-	/// 18:1 gearing, 200RPM, Green gear set
-	Green,
 	/// 36:1 gearing, 100RPM, Red gear set
-	Red,
+	Red = 0,
+	/// 18:1 gearing, 200RPM, Green gear set
+	Green = 1,
+	/// 6:1 gearing, 600RPM, Blue gear set
+	Blue = 2,
 }
 
 impl From<Gearset> for motor_gearset_e {
