@@ -12,12 +12,10 @@ Priorities for bindings and getting things working
 - [ ] Sensors
 	- [x] Rotation sensor (documentation needed)
 	- [x] IMU
-	- [ ] Distance sensor
 	- [ ] Optical sensor
 	- [ ] Vision sensor
-	- [ ] GPS sensor
+	- [x] GPS sensor
 - [x] ADI (TriPort)
-- [ ] Proper low alloc cstring interop
 - [ ] Testing
 - [ ] Display, GUI (home rolled immediate mode?)
 
