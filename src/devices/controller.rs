@@ -245,10 +245,10 @@ impl Battery {
 bitflags! {
 	/// Bitflags for defining the state of the robot in competition mode.
 	pub struct CompetitionMode: u8 {
-		/// The brain is get in autonomous mode.
-		const AUTONOMOUS = 0x1 << 0x0;
 		/// The brain is disabled.
-		const DISABLED = 0x1 << 0x1;
+		const DISABLED = 0x1 << 0x0;
+		/// The brain is in autonomous mode.
+		const AUTONOMOUS = 0x1 << 0x1;
 		/// The brain is connected to the competition control.
 		const CONNECTED = 0x1 << 0x2;
 	}
