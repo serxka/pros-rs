@@ -119,6 +119,10 @@ impl Instant {
 	}
 
 	/// Return the duration between this `Instant` and an earlier `Instant`.
+	///
+	/// # Panics
+	/// Panics if `earlier` happened later than `self`. Use
+	/// [`Duration::checked_sub_instant()`] instead to catch underflow.
 	pub fn duration_since(&self, earlier: Instant) -> Duration {
 		Duration::from_micros(
 			self.checked_sub_instant(earlier)

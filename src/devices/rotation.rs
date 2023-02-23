@@ -22,10 +22,10 @@ impl RotationSensor {
 	/// the caller to make sure there does not exists another device object with
 	/// the same port. If there is another device object with the same port this
 	/// will result in undefined behaviour and/or panics.
-	pub unsafe fn new(port: Port, direction: Direction) -> Self {
+	pub unsafe fn new(port: Port, direction: Direction) -> Result<Self, DeviceError> {
 		let mut s = RotationSensor { port };
-		s.set_direction(direction).unwrap();
-		s
+		s.set_direction(direction)?;
+		Ok(s)
 	}
 
 	#[inline]
@@ -105,10 +105,10 @@ impl RotationSensor {
 	/// nearest increment. The smallest allowable refresh rate is 5ms. The
 	/// default is 10ms.
 	///
-	/// # Assertions
+	/// # Debug Assertions
 	/// This function will assert that rate is a value greater than `5`.
 	pub fn set_data_rate(&mut self, rate: u32) -> Result<(), DeviceError> {
-		assert!(rate >= 5);
+		debug_assert!(rate >= 5);
 		pros_unsafe_err!(
 			rotation_set_data_rate,
 			err = DeviceError::errno_rotation(),

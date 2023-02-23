@@ -87,7 +87,9 @@ use crate::ports::{Port, TriPort};
 use controller::Controller;
 
 /// A structure which represents all the possible devices connected to the V5
-/// Brain.
+/// Brain. You can either take these values directly from the [`Devices`] or
+/// you can use the provided utility functions which will check for correct
+/// port indices.
 pub struct Devices {
 	/// Primary Controller
 	pub master_controller: Option<Controller>,
@@ -115,12 +117,12 @@ impl Devices {
 	pub unsafe fn new() -> Self {
 		let mut ports: SmallVec<[_; 21]> = SmallVec::new();
 		for i in 1..22 {
-			ports.push(Some(Port::new(i)));
+			ports.push(Some(Port::new(i).unwrap()));
 		}
 
 		let mut triports: SmallVec<[_; 8]> = SmallVec::new();
 		for i in 1..9 {
-			triports.push(Some(TriPort::new(i, None)));
+			triports.push(Some(TriPort::new(i, None).unwrap()));
 		}
 
 		Devices {
@@ -151,42 +153,62 @@ impl Devices {
 	/// Take a Port out of this [`Devices`] structure. The index passed to this
 	/// function is the same as that of the port.
 	///
-	/// # Assertions
-	/// Assertion that the port index with the valid range
-	/// for the V5 Brain.
+	/// # Errors
+	/// May return a [`DeviceError::PortRange`] if the port index is out of
+	/// range or a [`DeviceError::ResourceInUse`] if the port has already been
+	/// taken.
 	///
-	/// # Panics
-	/// This function will panic if the port has already been taken.
+	/// # Debug Assertions
+	/// Assertion that the port index with the valid range for the V5 Brain.
 	///
 	/// # Examples
 	/// ```
-	/// let port = devices.take_port(1);
+	/// let port = devices.take_port(1).unwrap();
 	/// assert_eq!(1, port.get());
 	/// ```
-	pub fn take_port(&mut self, index: usize) -> Port {
-		assert!(
-			(1..=21).contains(&index),
+	pub fn take_port(&mut self, index: usize) -> Result<Port, DeviceError> {
+		let within = (1..=21).contains(&index);
+		debug_assert!(
+			within,
 			"This port value is not within the range of 1..=21 ({})",
 			index
 		);
-		self.ports[index - 1].take().unwrap()
+
+		if within {
+			match self.ports[index - 1].take() {
+				Some(p) => Ok(p),
+				None => Err(DeviceError::ResourceInUse),
+			}
+		} else {
+			Err(DeviceError::PortRange)
+		}
 	}
 
 	/// Take a TriPort out of this [`Devices`] structure. The index passed to
 	/// this function is the same as that of the port.
 	///
-	/// # Assertions
-	/// Assertions that the port index with the valid range
-	/// for the V5 Brain.
+	/// # Errors
+	/// May return a [`DeviceError::PortRange`] if the port index is out of
+	/// range or a [`DeviceError::ResourceInUse`] if the port has already been
+	/// taken.
 	///
-	/// # Panics
-	/// This function will panic if the port has already been taken.
-	pub fn take_triport(&mut self, index: usize) -> TriPort {
-		assert!(
-			(1..=8).contains(&index),
+	/// # Debug Assertions
+	/// Assertions that the port index with the valid range for the V5 Brain.
+	pub fn take_triport(&mut self, index: usize) -> Result<TriPort, DeviceError> {
+		let within = (1..=8).contains(&index);
+		debug_assert!(
+			within,
 			"This port value is not within the range of 1..=8 ({})",
 			index
 		);
-		self.triports[index - 1].take().unwrap()
+
+		if within {
+			match self.triports[index - 1].take() {
+				Some(p) => Ok(p),
+				None => Err(DeviceError::ResourceInUse),
+			}
+		} else {
+			Err(DeviceError::PortRange)
+		}
 	}
 }

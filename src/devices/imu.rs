@@ -26,10 +26,10 @@ impl IMU {
 	/// the caller to make sure there does not exists another device object with
 	/// the same port. If there is another device object with the same port this
 	/// will result in undefined behaviour and/or panics.
-	pub unsafe fn new(port: Port) -> Self {
+	pub unsafe fn new(port: Port) -> Result<Self, DeviceError> {
 		let mut imu = IMU { port };
-		imu.calibrate().unwrap();
-		imu
+		imu.calibrate()?;
+		Ok(imu)
 	}
 
 	#[inline]

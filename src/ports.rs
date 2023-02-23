@@ -29,13 +29,12 @@ impl Port {
 	/// # Safety
 	/// The user must make sure that when calling this function to create a new
 	/// port, there isn't already a port with the same index.
-	pub unsafe fn new(port: u8) -> Self {
-		assert!(
-			(1..=21).contains(&port),
-			"This port value is not within the range of 1..=21 ({})",
-			port
-		);
-		Port(NonZeroU8::new_unchecked(port))
+	pub unsafe fn new(port: u8) -> Option<Port> {
+		if (1..=21).contains(&port) {
+			Some(Port(NonZeroU8::new_unchecked(port)))
+		} else {
+			None
+		}
 	}
 
 	/// Create a new port without checking the range at all. The purpose of this
@@ -72,7 +71,12 @@ impl Port {
 	/// # Panics
 	/// Check [`Motor::new()`] semantics.
 	#[inline]
-	pub fn into_motor(self, reversed: bool, gearset: Gearset, units: EncoderUnits) -> Motor {
+	pub fn into_motor(
+		self,
+		reversed: bool,
+		gearset: Gearset,
+		units: EncoderUnits,
+	) -> Result<Motor, DeviceError> {
 		unsafe { Motor::new(self, reversed, gearset, units) }
 	}
 
@@ -83,7 +87,7 @@ impl Port {
 	/// # Panics
 	/// Will panic if this port does not currently have a motor connected.
 	#[inline]
-	pub fn into_motor_default(self) -> Motor {
+	pub fn into_motor_default(self) -> Result<Motor, DeviceError> {
 		unsafe { Motor::new(self, false, Default::default(), Default::default()) }
 	}
 
@@ -93,7 +97,7 @@ impl Port {
 	/// # Panics
 	/// Check [`RotationSensor::new()`] semantics.
 	#[inline]
-	pub fn into_rotation_sensor(self, direction: Direction) -> RotationSensor {
+	pub fn into_rotation_sensor(self, direction: Direction) -> Result<RotationSensor, DeviceError> {
 		unsafe { RotationSensor::new(self, direction) }
 	}
 
@@ -103,7 +107,7 @@ impl Port {
 	/// # Panics
 	/// Check [`IMU::new()`] semantics.
 	#[inline]
-	pub fn into_imu(self) -> IMU {
+	pub fn into_imu(self) -> Result<IMU, DeviceError> {
 		unsafe { IMU::new(self) }
 	}
 }
@@ -186,17 +190,15 @@ impl TriPort {
 	/// The users must make sure there is not more than one TriPort object
 	/// created for a certain port. The user must also make sure that `ext_port`
 	/// is a device of [`DeviceType::Adi`].
-	pub unsafe fn new(port: u8, ext_port: Option<Port>) -> Self {
-		assert!(
-			(1..=8).contains(&port),
-			"This port value is not within the range of 1..=8 ({})",
-			port
-		);
-
-		TriPort {
-			port: NonZeroU8::new_unchecked(port),
-			// Port 22 is the internal ADI expander port
-			ext_port: ext_port.unwrap_or(Port::new_unchecked(22)),
+	pub unsafe fn new(port: u8, ext_port: Option<Port>) -> Option<Self> {
+		if (1..=8).contains(&port) {
+			Some(TriPort {
+				port: NonZeroU8::new_unchecked(port),
+				// Port 22 is the internal ADI expander port
+				ext_port: ext_port.unwrap_or(Port::new_unchecked(22)),
+			})
+		} else {
+			None
 		}
 	}
 
@@ -235,28 +237,28 @@ pub trait TriPortConvert {
 	///
 	/// # Panics
 	/// This function will panic if the TriPort is no longer connected.
-	fn into_analog_in(self) -> modes::TriPortAnalogIn;
+	fn into_analog_in(self) -> Result<modes::TriPortAnalogIn, DeviceError>;
 
 	/// Converts this TriPort object into a
 	/// [`TriPortAnalogOut`][modes::TriPortAnalogOut].
 	///
 	/// # Panics
 	/// This function will panic if the TriPort is no longer connected.
-	fn into_analog_out(self) -> modes::TriPortAnalogOut;
+	fn into_analog_out(self) -> Result<modes::TriPortAnalogOut, DeviceError>;
 
 	/// Converts this TriPort object into a
 	/// [`TriPortDigitalIn`][modes::TriPortDigitalIn].
 	///
 	/// # Panics
 	/// This function will panic if the TriPort is no longer connected.
-	fn into_digital_in(self) -> modes::TriPortDigitalIn;
+	fn into_digital_in(self) -> Result<modes::TriPortDigitalIn, DeviceError>;
 
 	/// Converts this TriPort object into a
 	/// [`TriPortDigitalOut`][modes::TriPortDigitalOut].
 	///
 	/// # Panics
 	/// This function will panic if the TriPort is no longer connected.
-	fn into_digital_out(self) -> modes::TriPortDigitalOut;
+	fn into_digital_out(self) -> Result<modes::TriPortDigitalOut, DeviceError>;
 }
 
 pub mod modes {
@@ -264,38 +266,34 @@ pub mod modes {
 
 	use super::{TriPort, TriPortConvert, TriPortMode};
 	use crate::bindings::*;
-
-	// [`ext_adi_port_get_value()`] cannot fail, as such the function doesn't return
-	// an error. Since the only possible error for writing is that the port is it's
-	// not connected, we don't care about those errors as there is no guarantee the
-	// signal will actually arrive.
+	use crate::devices::DeviceError;
 
 	impl TriPortConvert for TriPort {
-		fn into_analog_in(mut self) -> TriPortAnalogIn {
+		fn into_analog_in(mut self) -> Result<TriPortAnalogIn, DeviceError> {
 			unsafe {
-				self.set_mode(TriPortMode::AnalogIn).unwrap();
+				self.set_mode(TriPortMode::AnalogIn)?;
 			}
-			TriPortAnalogIn(self)
+			Ok(TriPortAnalogIn(self))
 		}
-		fn into_analog_out(mut self) -> TriPortAnalogOut {
-			unsafe {
-				self.set_mode(TriPortMode::AnalogOut).unwrap();
-			}
-			TriPortAnalogOut(self)
+		fn into_analog_out(mut self) -> Result<TriPortAnalogOut, DeviceError> {
+			unsafe { self.set_mode(TriPortMode::AnalogOut)? }
+			Ok(TriPortAnalogOut(self))
 		}
-		fn into_digital_in(mut self) -> TriPortDigitalIn {
-			unsafe {
-				self.set_mode(TriPortMode::DigitalIn).unwrap();
-			}
-			TriPortDigitalIn(self)
+		fn into_digital_in(mut self) -> Result<TriPortDigitalIn, DeviceError> {
+			unsafe { self.set_mode(TriPortMode::DigitalIn)? }
+			Ok(TriPortDigitalIn(self))
 		}
-		fn into_digital_out(mut self) -> TriPortDigitalOut {
-			unsafe {
-				self.set_mode(TriPortMode::DigitalOut).unwrap();
-			}
-			TriPortDigitalOut(self)
+		fn into_digital_out(mut self) -> Result<TriPortDigitalOut, DeviceError> {
+			unsafe { self.set_mode(TriPortMode::DigitalOut)? }
+			Ok(TriPortDigitalOut(self))
 		}
 	}
+
+	// [`ext_adi_port_get_value()`] and [`ext_adi_port_set_value()`] cannot
+	// fail, as such the function doesn't return an error. Since the only
+	// possible error for writing is that the port is it's not connected, we
+	// don't care about those errors as there is no guarantee the signal will
+	// actually arrive.
 
 	/// Wrapping of a TriPort, limiting it to being a single analog input.
 	pub struct TriPortAnalogIn(TriPort);
@@ -350,16 +348,16 @@ pub mod modes {
 	macro_rules! impl_triport_convert {
 		($tri:tt) => {
 			impl TriPortConvert for $tri {
-				fn into_analog_in(self) -> TriPortAnalogIn {
+				fn into_analog_in(self) -> Result<TriPortAnalogIn, DeviceError> {
 					self.0.into_analog_in()
 				}
-				fn into_analog_out(self) -> TriPortAnalogOut {
+				fn into_analog_out(self) -> Result<TriPortAnalogOut, DeviceError> {
 					self.0.into_analog_out()
 				}
-				fn into_digital_in(self) -> TriPortDigitalIn {
+				fn into_digital_in(self) -> Result<TriPortDigitalIn, DeviceError> {
 					self.0.into_digital_in()
 				}
-				fn into_digital_out(self) -> TriPortDigitalOut {
+				fn into_digital_out(self) -> Result<TriPortDigitalOut, DeviceError> {
 					self.0.into_digital_out()
 				}
 			}

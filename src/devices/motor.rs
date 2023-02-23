@@ -23,13 +23,18 @@ impl Motor {
 	/// the caller to make sure there does not exists another device object with
 	/// the same port. If there is another device object with the same port this
 	/// will result in undefined behaviour and/or panics.
-	pub unsafe fn new(port: Port, reversed: bool, gearset: Gearset, units: EncoderUnits) -> Self {
+	pub unsafe fn new(
+		port: Port,
+		reversed: bool,
+		gearset: Gearset,
+		units: EncoderUnits,
+	) -> Result<Self, DeviceError> {
 		let mut m = Motor { port };
-		m.set_brake_mode(BrakeMode::Coast).unwrap();
-		m.set_reversed(reversed).unwrap();
-		m.set_gearing(gearset).unwrap();
-		m.set_encoder_units(units).unwrap();
-		m
+		m.set_brake_mode(BrakeMode::Coast)?;
+		m.set_reversed(reversed)?;
+		m.set_gearing(gearset)?;
+		m.set_encoder_units(units)?;
+		Ok(m)
 	}
 
 	#[inline]
@@ -52,7 +57,7 @@ impl Motor {
 	}
 
 	pub fn move_absolute(&mut self, position: f64, velocity: i32) -> Result<(), DeviceError> {
-		assert!(velocity > 0);
+		debug_assert!(velocity > 0);
 		pros_unsafe_err!(
 			motor_move_absolute,
 			err = DeviceError::errno_motor(),
@@ -64,7 +69,7 @@ impl Motor {
 	}
 
 	pub fn move_relative(&mut self, offset: f64, velocity: i32) -> Result<(), DeviceError> {
-		assert!(velocity > 0);
+		debug_assert!(velocity > 0);
 		pros_unsafe_err!(
 			motor_move_relative,
 			err = DeviceError::errno_motor(),
@@ -78,11 +83,10 @@ impl Motor {
 	pub fn move_velocity(&mut self, velocity: i32) -> Result<(), DeviceError> {
 		// Debug assertion to make sure that velocity is getting set
 		// correctly
-		#[cfg(debug_assertions)]
 		match self.get_gearing()? {
-			Gearset::Blue => assert!(velocity >= -600 && velocity <= 600),
-			Gearset::Green => assert!(velocity >= -200 && velocity <= 200),
-			Gearset::Red => assert!(velocity >= -100 && velocity <= 100),
+			Gearset::Blue => debug_assert!(velocity >= -600 && velocity <= 600),
+			Gearset::Green => debug_assert!(velocity >= -200 && velocity <= 200),
+			Gearset::Red => debug_assert!(velocity >= -100 && velocity <= 100),
 		}
 		pros_unsafe_err!(
 			motor_move_velocity,
@@ -94,7 +98,7 @@ impl Motor {
 	}
 
 	pub fn move_voltage(&mut self, voltage: i16) -> Result<(), DeviceError> {
-		assert!(voltage >= -12000 && voltage <= 12000);
+		debug_assert!(voltage >= -12000 && voltage <= 12000);
 		pros_unsafe_err!(
 			motor_move_voltage,
 			err = DeviceError::errno_motor(),
@@ -107,13 +111,12 @@ impl Motor {
 	pub fn modify_velocity(&mut self, velocity: i32) -> Result<(), DeviceError> {
 		// Debug assertion to make sure that velocity is getting set
 		// correctly
-		#[cfg(debug_assertions)]
 		match self.get_gearing()? {
-			Gearset::Blue => assert!(velocity >= 600 && velocity <= 600),
-			Gearset::Green => assert!(velocity >= 200 && velocity <= 200),
-			Gearset::Red => assert!(velocity >= 100 && velocity <= 100),
+			Gearset::Blue => debug_assert!(velocity >= 600 && velocity <= 600),
+			Gearset::Green => debug_assert!(velocity >= 200 && velocity <= 200),
+			Gearset::Red => debug_assert!(velocity >= 100 && velocity <= 100),
 		}
-		assert!(velocity != 0);
+		debug_assert!(velocity != 0);
 		pros_unsafe_err!(
 			motor_move_voltage,
 			err = DeviceError::errno_motor(),
@@ -154,7 +157,7 @@ impl Motor {
 			self.get_port()
 		)?;
 		// We can't have a negative current draw
-		assert!(i >= 0);
+		debug_assert!(i >= 0);
 		Ok(i as u32)
 	}
 
@@ -342,7 +345,7 @@ impl Motor {
 			self.get_port()
 		)?;
 		// We can't have a negative current limit
-		assert!(i >= 0);
+		debug_assert!(i >= 0);
 		Ok(i as u32)
 	}
 
@@ -353,7 +356,7 @@ impl Motor {
 			self.get_port()
 		)?;
 		// We can't have a negative voltage limit
-		assert!(v >= 0);
+		debug_assert!(v >= 0);
 		Ok(v as u32)
 	}
 
@@ -416,7 +419,7 @@ impl Motor {
 	}
 
 	pub fn set_voltage_limit(&mut self, limit: u32) -> Result<(), DeviceError> {
-		assert!(limit <= 12000);
+		debug_assert!(limit <= 12000);
 		pros_unsafe_err!(
 			motor_set_voltage_limit,
 			err = DeviceError::errno_motor(),
