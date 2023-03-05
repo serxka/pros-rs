@@ -11,6 +11,7 @@ pub mod gps;
 pub mod imu;
 pub mod motor;
 pub mod rotation;
+pub mod vision;
 
 use smallvec::SmallVec;
 
@@ -32,6 +33,13 @@ pub enum DeviceError {
 	StillCalibrating,
 	/// The Port chosen cannot be configured as a rotation sensor,
 	PortNotRotationSensor,
+	/// The Port chosen cannot be configured as a vision sensor,
+	PortNotVisionSensor,
+	/// The Vision sensor failed for an unknown reason,
+	VisionUnknown,
+	/// The Vision sensor cannot see any other objects which meet the
+	/// requirements,
+	VisionObjectsDeficit,
 	/// An unknown error,
 	#[doc(hidden)]
 	Unknown(i32),
@@ -68,6 +76,16 @@ impl DeviceError {
 		match get_errno() {
 			libc::ENODEV => Self::PortNotRotationSensor,
 			libc::ENXIO => Self::PortRange,
+			e => Self::Unknown(e),
+		}
+	}
+
+	pub(crate) fn errno_vision() -> Self {
+		match get_errno() {
+			libc::ENODEV => Self::PortNotVisionSensor,
+			libc::ENXIO => Self::PortRange,
+			libc::EHOSTDOWN | libc::EAGAIN => Self::VisionUnknown,
+			libc::EDOM => Self::VisionObjectsDeficit,
 			e => Self::Unknown(e),
 		}
 	}

@@ -169,3 +169,17 @@ macro_rules! pros_unsafe_err_f {
 		}
 	};
 }
+
+#[doc(hidden)]
+#[macro_export]
+macro_rules! pros_unsafe_err_sig {
+	($fn:ident, err = $err:expr) => {
+		pros_unsafe_err_sig!($fn, err = $err,)
+	};
+	($fn:ident, err = $err:expr, $($x:expr),*) => {
+		match unsafe { $fn ( $($x,)* ) } {
+			x if x.id == $crate::util::PROS_ERR_VISION_OBJECT_SIG => Err($err),
+			x => Ok(x)
+		}
+	};
+}

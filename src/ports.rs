@@ -1,7 +1,7 @@
 //! Contains types for managing the ports on the V5 Brain.
 
 use crate::bindings::*;
-use crate::devices::{imu::*, motor::*, rotation::*, DeviceError, Direction};
+use crate::devices::{imu::*, motor::*, rotation::*, vision::*, DeviceError, Direction};
 
 use core::num::NonZeroU8;
 
@@ -109,6 +109,16 @@ impl Port {
 	#[inline]
 	pub fn into_imu(self) -> Result<IMU, DeviceError> {
 		unsafe { IMU::new(self) }
+	}
+
+	/// Convert this port into a new vision sensor object. Semantics are
+	/// identical to [`Vision::new()`]
+	///
+	/// # Errors
+	/// Check [`Vision::new()`] semantics.
+	#[inline]
+	pub fn into_vision(self) -> Result<Vision, DeviceError> {
+		unsafe { Vision::new(self) }
 	}
 }
 

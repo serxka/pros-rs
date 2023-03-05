@@ -169,6 +169,7 @@ const WHITELIST_FUNCTIONS: &[&str] = &[
 	"vision_clear_led",
 	"vision_create_color_code",
 	"vision_get_by_code",
+	"vision_get_by_sig",
 	"vision_get_by_size",
 	"vision_get_exposure",
 	"vision_get_object_count",
@@ -190,7 +191,7 @@ const WHITELIST_FUNCTIONS: &[&str] = &[
 const WHITELIST_TYPES: &[&str] = &[];
 const WHITELIST_VARS: &[&str] = &["errno"];
 
-const BLACKLIST_ITEMS: &[&str] = &["vision_object_s_t", "vision_get_by_sig"];
+const BLACKLIST_ITEMS: &[&str] = &["vision_object_s_t"];
 const BITFIELD_ENUM: &[&str] = &[];
 
 fn main() {

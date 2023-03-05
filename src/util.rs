@@ -3,6 +3,7 @@ use alloc::{string::String, vec::Vec};
 pub const PROS_ERR: i32 = i32::MAX;
 pub const PROS_ERR_U32: u32 = i32::MAX as u32;
 pub const PROS_ERR_F: f64 = f64::INFINITY;
+pub const PROS_ERR_VISION_OBJECT_SIG: u8 = 255;
 
 extern "C" {
 	// Returns a pointer to this threads errno value
