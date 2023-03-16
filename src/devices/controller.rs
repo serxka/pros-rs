@@ -38,8 +38,10 @@ impl Controller {
 		}
 	}
 
-	/// Gets the value of an analog axis (joystick) on a controller.
-	pub fn get_analog(&self, axis: Axis) -> Result<i8, DeviceError> {
+	/// Gets the value of an analog axis (joystick) on a controller. As an `i8`
+	/// value, if you would like the value as a float use
+	/// [`Controller::get_analog`].
+	pub fn get_analog_raw(&self, axis: Axis) -> Result<i8, DeviceError> {
 		let res = pros_unsafe_err!(
 			controller_get_analog,
 			err = DeviceError::errno_generic(),
@@ -47,6 +49,12 @@ impl Controller {
 			axis.into()
 		)?;
 		Ok(res as i8)
+	}
+
+	/// Gets the value of an analog axis (joystick) on a controller.
+	pub fn get_analog(&self, axis: Axis) -> Result<f32, DeviceError> {
+		self.get_analog_raw(axis)
+			.map(|i| (i as f32 / 127.0).clamp(-1.0, 1.0))
 	}
 
 	/// Get the value of a digital axis (button) on a controller. If the axis is
