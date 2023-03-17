@@ -82,6 +82,7 @@ pub mod prelude {
 		Mutex,
 	};
 	pub use crate::Robot;
+	pub use crate::{action, robot};
 	pub use alloc::vec::Vec;
 	pub use core::time::Duration;
 	pub use libc_print::std_name::*;
