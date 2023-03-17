@@ -52,9 +52,9 @@ impl Controller {
 	}
 
 	/// Gets the value of an analog axis (joystick) on a controller.
-	pub fn get_analog(&self, axis: Axis) -> Result<f32, DeviceError> {
+	pub fn get_analog(&self, axis: Axis) -> Result<f64, DeviceError> {
 		self.get_analog_raw(axis)
-			.map(|i| (i as f32 / 127.0).clamp(-1.0, 1.0))
+			.map(|i| (i as f64 / 127.0).clamp(-1.0, 1.0))
 	}
 
 	/// Get the value of a digital axis (button) on a controller. If the axis is
