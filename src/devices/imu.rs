@@ -1,7 +1,7 @@
 use crate::bindings::*;
 use crate::devices::DeviceError;
 use crate::ports::Port;
-use crate::util::{PROS_ERR, PROS_ERR_F, PROS_ERR_U32};
+use crate::util::{PROS_ERR_F, PROS_ERR_U32};
 
 use crate::math::{quat::Quat, vec::Vec3};
 
@@ -102,7 +102,7 @@ impl IMU {
 	pub fn is_calibrating(&self) -> Result<bool, DeviceError> {
 		match unsafe { imu_get_status(self.get_port()) } {
 			PROS_ERR_U32 => Err(DeviceError::errno_imu()),
-			s if s == imu_status_e_E_IMU_STATUS_ERROR => Err(DeviceError::Unknown(PROS_ERR)),
+			s if s == imu_status_e_E_IMU_STATUS_ERROR => Err(DeviceError::Unknown),
 			// We know for sure that it is calibrating
 			s if s & imu_status_e_E_IMU_STATUS_CALIBRATING != 0 => Ok(true),
 			// We probably got 0 meaning it's calibrated, otherwise rubbish

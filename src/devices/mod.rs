@@ -42,7 +42,7 @@ pub enum DeviceError {
 	VisionObjectsDeficit,
 	/// An unknown error,
 	#[doc(hidden)]
-	Unknown(i32),
+	Unknown,
 }
 
 impl DeviceError {
@@ -50,7 +50,12 @@ impl DeviceError {
 		match get_errno() {
 			libc::EACCES => Self::ResourceInUse,
 			libc::ENXIO => Self::PortRange,
-			e => Self::Unknown(e),
+			e => {
+				if cfg!(debug_assertions) {
+					panic!("reached unknown error ({e})");
+				}
+				Self::Unknown
+			}
 		}
 	}
 
@@ -58,7 +63,12 @@ impl DeviceError {
 		match get_errno() {
 			libc::ENODEV => Self::PortNotMotor,
 			libc::ENXIO => Self::PortRange,
-			e => Self::Unknown(e),
+			e => {
+				if cfg!(debug_assertions) {
+					panic!("reached unknown error ({e})");
+				}
+				Self::Unknown
+			}
 		}
 	}
 
@@ -68,7 +78,12 @@ impl DeviceError {
 			libc::ENODEV => Self::PortNotIMU,
 			libc::ENXIO => Self::PortRange,
 			libc::EAGAIN => Self::StillCalibrating,
-			e => Self::Unknown(e),
+			e => {
+				if cfg!(debug_assertions) {
+					panic!("reached unknown error ({e})");
+				}
+				Self::Unknown
+			}
 		}
 	}
 
@@ -76,7 +91,12 @@ impl DeviceError {
 		match get_errno() {
 			libc::ENODEV => Self::PortNotRotationSensor,
 			libc::ENXIO => Self::PortRange,
-			e => Self::Unknown(e),
+			e => {
+				if cfg!(debug_assertions) {
+					panic!("reached unknown error ({e})");
+				}
+				Self::Unknown
+			}
 		}
 	}
 
@@ -86,7 +106,12 @@ impl DeviceError {
 			libc::ENXIO => Self::PortRange,
 			libc::EHOSTDOWN | libc::EAGAIN => Self::VisionUnknown,
 			libc::EDOM => Self::VisionObjectsDeficit,
-			e => Self::Unknown(e),
+			e => {
+				if cfg!(debug_assertions) {
+					panic!("reached unknown error ({e})");
+				}
+				Self::Unknown
+			}
 		}
 	}
 }
