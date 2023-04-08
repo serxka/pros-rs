@@ -9,7 +9,7 @@ pub trait Action {
 	/// Poll to see if our action has been completed. Returns straight away.
 	fn poll(&mut self) -> Poll<Self::Output>;
 	/// Soonest possible time our action might be complete.
-	fn next(&self) -> NextSleep;
+	fn next(&mut self) -> NextSleep;
 }
 
 /// An enum to store whether our action is complete or still waiting.

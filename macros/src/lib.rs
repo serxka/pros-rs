@@ -131,14 +131,14 @@ fn action_inner(input: TokenStream) -> TokenStream {
 		.map(syn::Index::from)
 		.fold(
 			quote! {
-				match ::pros::rtos::action::Action::next(&#actions_ident.#i) {
+				match ::pros::rtos::action::Action::next(&mut #actions_ident.#i) {
 					::pros::rtos::action::NextSleep::Never => return #enum_ident::None,
 					n => ::pros::rtos::action::NextSleep::sleep(n),
 				}
 			},
 			|prev, i| {
 				quote! {
-					match ::pros::rtos::action::Action::next(&#actions_ident.#i) {
+					match ::pros::rtos::action::Action::next(&mut #actions_ident.#i) {
 						::pros::rtos::action::NextSleep::Never => #prev
 						n => ::pros::rtos::action::NextSleep::sleep(n)
 					}

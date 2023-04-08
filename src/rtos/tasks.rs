@@ -304,7 +304,7 @@ impl CompetitionState {
 				}
 			}
 
-			fn next(&self) -> NextSleep {
+			fn next(&mut self) -> NextSleep {
 				NextSleep::Never
 			}
 		}

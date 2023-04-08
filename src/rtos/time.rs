@@ -208,14 +208,15 @@ impl Interval {
 
 			// If this gets called it is assumed that we are not yet complete so we must
 			// have some time that we need to wait for.
-			fn next(&self) -> NextSleep {
-				// TODO: Figure out a neat way to use `task_delay_until` instead
-				NextSleep::Timestamp(
+			fn next(&mut self) -> NextSleep {
+				let sleep = NextSleep::Timestamp(
 					(self.0.last + self.0.period)
 						.checked_sub_instant(Instant::now())
 						.map(|i| i.as_duration())
 						.unwrap_or(Duration::from_micros(0)),
-				)
+				);
+				self.0.last += self.0.period;
+				sleep
 			}
 		}
 
