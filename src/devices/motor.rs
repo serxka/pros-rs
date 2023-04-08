@@ -126,7 +126,7 @@ impl Motor {
 		Ok(())
 	}
 
-	pub fn get_target_position(&mut self) -> Result<f64, DeviceError> {
+	pub fn get_target_position(&self) -> Result<f64, DeviceError> {
 		pros_unsafe_err_f!(
 			motor_get_target_position,
 			err = DeviceError::errno_motor(),
@@ -134,7 +134,7 @@ impl Motor {
 		)
 	}
 
-	pub fn get_target_velocity(&mut self) -> Result<i32, DeviceError> {
+	pub fn get_target_velocity(&self) -> Result<i32, DeviceError> {
 		pros_unsafe_err!(
 			motor_get_target_velocity,
 			err = DeviceError::errno_motor(),
@@ -142,7 +142,7 @@ impl Motor {
 		)
 	}
 
-	pub fn get_actual_velocity(&mut self) -> Result<f64, DeviceError> {
+	pub fn get_actual_velocity(&self) -> Result<f64, DeviceError> {
 		pros_unsafe_err_f!(
 			motor_get_actual_velocity,
 			err = DeviceError::errno_motor(),
@@ -150,7 +150,7 @@ impl Motor {
 		)
 	}
 
-	pub fn get_current_draw(&mut self) -> Result<u32, DeviceError> {
+	pub fn get_current_draw(&self) -> Result<u32, DeviceError> {
 		let i = pros_unsafe_err!(
 			motor_get_target_velocity,
 			err = DeviceError::errno_motor(),
@@ -161,7 +161,7 @@ impl Motor {
 		Ok(i as u32)
 	}
 
-	pub fn get_direction(&mut self) -> Result<Direction, DeviceError> {
+	pub fn get_direction(&self) -> Result<Direction, DeviceError> {
 		let dir = pros_unsafe_err!(
 			motor_get_direction,
 			err = DeviceError::errno_motor(),
@@ -174,7 +174,7 @@ impl Motor {
 		}
 	}
 
-	pub fn get_efficiency(&mut self) -> Result<f64, DeviceError> {
+	pub fn get_efficiency(&self) -> Result<f64, DeviceError> {
 		pros_unsafe_err_f!(
 			motor_get_efficiency,
 			err = DeviceError::errno_motor(),
@@ -182,7 +182,7 @@ impl Motor {
 		)
 	}
 
-	pub fn get_faults(&mut self) -> Result<FaultFlags, DeviceError> {
+	pub fn get_faults(&self) -> Result<FaultFlags, DeviceError> {
 		let _f = pros_unsafe_err_u32!(
 			motor_get_faults,
 			err = DeviceError::errno_motor(),
@@ -191,7 +191,7 @@ impl Motor {
 		unimplemented!()
 	}
 
-	pub fn get_flags(&mut self) -> Result<MotorFlags, DeviceError> {
+	pub fn get_flags(&self) -> Result<MotorFlags, DeviceError> {
 		let _f = pros_unsafe_err_u32!(
 			motor_get_flags,
 			err = DeviceError::errno_motor(),
@@ -200,7 +200,7 @@ impl Motor {
 		unimplemented!()
 	}
 
-	pub fn get_position(&mut self) -> Result<f64, DeviceError> {
+	pub fn get_position(&self) -> Result<f64, DeviceError> {
 		pros_unsafe_err_f!(
 			motor_get_position,
 			err = DeviceError::errno_motor(),
@@ -208,7 +208,7 @@ impl Motor {
 		)
 	}
 
-	pub fn get_power(&mut self) -> Result<f64, DeviceError> {
+	pub fn get_power(&self) -> Result<f64, DeviceError> {
 		pros_unsafe_err_f!(
 			motor_get_power,
 			err = DeviceError::errno_motor(),
@@ -216,7 +216,7 @@ impl Motor {
 		)
 	}
 
-	pub fn get_raw_position(&mut self, mut timestamp: u32) -> Result<i32, DeviceError> {
+	pub fn get_raw_position(&self, mut timestamp: u32) -> Result<i32, DeviceError> {
 		pros_unsafe_err!(
 			motor_get_raw_position,
 			err = DeviceError::errno_motor(),
@@ -225,7 +225,7 @@ impl Motor {
 		)
 	}
 
-	pub fn get_temperature(&mut self) -> Result<f64, DeviceError> {
+	pub fn get_temperature(&self) -> Result<f64, DeviceError> {
 		pros_unsafe_err_f!(
 			motor_get_temperature,
 			err = DeviceError::errno_motor(),
@@ -233,7 +233,7 @@ impl Motor {
 		)
 	}
 
-	pub fn get_torque(&mut self) -> Result<f64, DeviceError> {
+	pub fn get_torque(&self) -> Result<f64, DeviceError> {
 		pros_unsafe_err_f!(
 			motor_get_torque,
 			err = DeviceError::errno_motor(),
@@ -241,7 +241,7 @@ impl Motor {
 		)
 	}
 
-	pub fn get_voltage(&mut self) -> Result<i32, DeviceError> {
+	pub fn get_voltage(&self) -> Result<i32, DeviceError> {
 		pros_unsafe_err!(
 			motor_get_voltage,
 			err = DeviceError::errno_motor(),
@@ -249,7 +249,7 @@ impl Motor {
 		)
 	}
 
-	pub fn at_zero_position(&mut self) -> Result<bool, DeviceError> {
+	pub fn at_zero_position(&self) -> Result<bool, DeviceError> {
 		pros_unsafe_err_bool!(
 			motor_get_zero_position_flag,
 			err = DeviceError::errno_motor(),
@@ -257,7 +257,7 @@ impl Motor {
 		)
 	}
 
-	pub fn is_stopped(&mut self) -> Result<bool, DeviceError> {
+	pub fn is_stopped(&self) -> Result<bool, DeviceError> {
 		pros_unsafe_err_bool!(
 			motor_is_stopped,
 			err = DeviceError::errno_motor(),
@@ -265,7 +265,7 @@ impl Motor {
 		)
 	}
 
-	pub fn is_over_current(&mut self) -> Result<bool, DeviceError> {
+	pub fn is_over_current(&self) -> Result<bool, DeviceError> {
 		pros_unsafe_err_bool!(
 			motor_is_over_current,
 			err = DeviceError::errno_motor(),
@@ -273,7 +273,7 @@ impl Motor {
 		)
 	}
 
-	pub fn is_over_temp(&mut self) -> Result<bool, DeviceError> {
+	pub fn is_over_temp(&self) -> Result<bool, DeviceError> {
 		pros_unsafe_err_bool!(
 			motor_is_over_temp,
 			err = DeviceError::errno_motor(),
@@ -281,7 +281,7 @@ impl Motor {
 		)
 	}
 
-	pub fn get_brake_mode(&mut self) -> Result<BrakeMode, DeviceError> {
+	pub fn get_brake_mode(&self) -> Result<BrakeMode, DeviceError> {
 		let m = pros_unsafe_err_u32!(
 			motor_get_brake_mode,
 			err = DeviceError::errno_motor(),
@@ -300,7 +300,7 @@ impl Motor {
 		}
 	}
 
-	pub fn get_encoder_units(&mut self) -> Result<EncoderUnits, DeviceError> {
+	pub fn get_encoder_units(&self) -> Result<EncoderUnits, DeviceError> {
 		let m = pros_unsafe_err_u32!(
 			motor_get_encoder_units,
 			err = DeviceError::errno_motor(),
@@ -319,7 +319,7 @@ impl Motor {
 		}
 	}
 
-	pub fn get_gearing(&mut self) -> Result<Gearset, DeviceError> {
+	pub fn get_gearing(&self) -> Result<Gearset, DeviceError> {
 		let m = pros_unsafe_err_u32!(
 			motor_get_gearing,
 			err = DeviceError::errno_motor(),
@@ -338,7 +338,7 @@ impl Motor {
 		}
 	}
 
-	pub fn get_current_limit(&mut self) -> Result<u32, DeviceError> {
+	pub fn get_current_limit(&self) -> Result<u32, DeviceError> {
 		let i = pros_unsafe_err!(
 			motor_get_current_limit,
 			err = DeviceError::errno_motor(),
@@ -349,7 +349,7 @@ impl Motor {
 		Ok(i as u32)
 	}
 
-	pub fn get_voltage_limit(&mut self) -> Result<u32, DeviceError> {
+	pub fn get_voltage_limit(&self) -> Result<u32, DeviceError> {
 		let v = pros_unsafe_err!(
 			motor_get_voltage_limit,
 			err = DeviceError::errno_motor(),
@@ -360,7 +360,7 @@ impl Motor {
 		Ok(v as u32)
 	}
 
-	pub fn is_reversed(&mut self) -> Result<bool, DeviceError> {
+	pub fn is_reversed(&self) -> Result<bool, DeviceError> {
 		pros_unsafe_err_bool!(
 			motor_is_reversed,
 			err = DeviceError::errno_motor(),
