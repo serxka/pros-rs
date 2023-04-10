@@ -169,7 +169,7 @@ fn panic(info: &core::panic::PanicInfo) -> ! {
 	if let Some(s) = info.payload().downcast_ref::<&str>() {
 		libc_print::libc_eprint!("'{}', ", s);
 	} else if let Some(args) = info.message() {
-		libc_print::libc_eprint!("{}", args);
+		libc_print::libc_eprint!("'{}', ", args);
 	} else {
 		libc_print::libc_eprint!("<no message>, ");
 	}
