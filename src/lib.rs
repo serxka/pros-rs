@@ -187,7 +187,6 @@ fn panic(info: &core::panic::PanicInfo) -> ! {
 			bindings::motor_set_brake_mode(i, devices::motor::BrakeMode::Coast.into());
 			bindings::motor_move_velocity(i, 0);
 		}
-
-		libc::exit(1);
 	}
+	loop {}
 }
