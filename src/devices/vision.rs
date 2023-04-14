@@ -1,3 +1,5 @@
+use smallvec::SmallVec;
+
 use crate::bindings::*;
 use crate::devices::DeviceError;
 use crate::ports::Port;
@@ -246,6 +248,43 @@ impl Vision {
 		match Object::from_raw(raw) {
 			None => Err(DeviceError::errno_vision()),
 			Some(obj) => Ok(obj),
+		}
+	}
+
+	pub fn read_by_sig(
+		&self,
+		size_id: u32,
+		sig_id: u32,
+		object_count: u32,
+	) -> Result<SmallVec<[Object; 4]>, DeviceError> {
+		let mut vec: SmallVec<[vision_object_s_t; 4]> =
+			SmallVec::with_capacity(object_count as usize);
+
+		let num_detected = pros_unsafe_err!(
+			vision_read_by_sig,
+			err = DeviceError::errno_vision(),
+			self.get_port(),
+			size_id,
+			sig_id,
+			object_count,
+			vec.as_mut_ptr()
+		)?;
+
+		// we have to set the length of the SmallVec manually becuase the
+		// C bindings will add the objects but not incrememnt the length
+		unsafe { vec.set_len(num_detected as usize) }
+
+		let vec = vec
+			.into_iter()
+			.map(Object::from_raw)
+			.collect::<Option<SmallVec<_>>>();
+
+		// this should never fail since pros should always return a valid
+		// vision_object_s_t
+		if let Some(vec) = vec {
+			Ok(vec)
+		} else {
+			unreachable!()
 		}
 	}
 }
