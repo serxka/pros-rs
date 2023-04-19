@@ -22,6 +22,12 @@ const WHITELIST_FUNCTIONS: &[&str] = &[
 	"ext_adi_digital_get_new_press",
 	"ext_adi_digital_read",
 	"ext_adi_digital_write",
+	"ext_adi_led_clear_all",
+	"ext_adi_led_clear_pixel",
+	"ext_adi_led_init",
+	"ext_adi_led_set",
+	"ext_adi_led_set_all",
+	"ext_adi_led_set_pixel",
 	"ext_adi_pin_mode",
 	"ext_adi_port_get_config",
 	"ext_adi_port_get_value",
@@ -188,7 +194,7 @@ const WHITELIST_FUNCTIONS: &[&str] = &[
 	"vision_set_zero_point",
 	"vision_signature_from_utility",
 ];
-const WHITELIST_TYPES: &[&str] = &[];
+const WHITELIST_TYPES: &[&str] = &["ext_adi_led_t"];
 const WHITELIST_VARS: &[&str] = &["errno"];
 
 const BLACKLIST_ITEMS: &[&str] = &["vision_object_s_t"];
@@ -204,7 +210,7 @@ fn main() {
 
 	// Extract kernel zip
 	let kernel_file =
-		std::fs::File::open("kernel@3.7.1.zip").expect("failed to open kernel zip file");
+		std::fs::File::open("kernel@3.8.0.zip").expect("failed to open kernel zip file");
 	zip::read::ZipArchive::new(kernel_file)
 		.unwrap()
 		.extract(kernel_path.clone())
