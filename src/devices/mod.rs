@@ -9,6 +9,7 @@ pub mod controller;
 pub mod expander;
 pub mod gps;
 pub mod imu;
+pub mod led;
 pub mod motor;
 pub mod rotation;
 pub mod vision;
@@ -40,6 +41,8 @@ pub enum DeviceError {
 	/// The Vision sensor cannot see any other objects which meet the
 	/// requirements,
 	VisionObjectsDeficit,
+	/// The port chosen cannot be configured as an ADI port,
+	PortNotADI,
 	/// An unknown error,
 	#[doc(hidden)]
 	Unknown,
@@ -106,6 +109,19 @@ impl DeviceError {
 			libc::ENXIO => Self::PortRange,
 			libc::EHOSTDOWN | libc::EAGAIN => Self::VisionUnknown,
 			libc::EDOM => Self::VisionObjectsDeficit,
+			e => {
+				if cfg!(debug_assertions) {
+					panic!("reached unknown error ({e})");
+				}
+				Self::Unknown
+			}
+		}
+	}
+
+	pub(crate) fn errno_adi() -> Self {
+		match get_errno() {
+			libc::ENXIO => Self::PortRange,
+			libc::EINVAL | libc::EADDRINUSE => Self::PortNotADI,
 			e => {
 				if cfg!(debug_assertions) {
 					panic!("reached unknown error ({e})");

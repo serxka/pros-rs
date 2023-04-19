@@ -1,7 +1,9 @@
 //! Contains types for managing the ports on the V5 Brain.
 
 use crate::bindings::*;
-use crate::devices::{gps::*, imu::*, motor::*, rotation::*, vision::*, DeviceError, Direction};
+use crate::devices::{
+	gps::*, imu::*, led::*, motor::*, rotation::*, vision::*, DeviceError, Direction,
+};
 
 use core::num::NonZeroU8;
 
@@ -192,8 +194,8 @@ impl From<v5_device_e_t> for DeviceType {
 /// than one purpose.
 #[derive(Debug)]
 pub struct TriPort {
-	port: NonZeroU8,
-	ext_port: Port,
+	pub(crate) port: NonZeroU8,
+	pub(crate) ext_port: Port,
 }
 
 impl TriPort {
@@ -229,6 +231,15 @@ impl TriPort {
 			x => Ok(x),
 		}?;
 		Ok(())
+	}
+
+	#[inline]
+	pub fn get(&self) -> (u8, u8) {
+		(self.port.get(), self.ext_port.get())
+	}
+
+	pub fn into_led_strip(self) -> Result<LedStrip, DeviceError> {
+		unsafe { LedStrip::new(self) }
 	}
 }
 
