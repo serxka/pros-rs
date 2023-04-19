@@ -1,7 +1,6 @@
 use crate::bindings::*;
-use crate::devices::DeviceError;
+use crate::devices::{Colour, DeviceError};
 use crate::ports::TriPort;
-use crate::util::Colour;
 
 #[derive(Debug)]
 pub struct LedStrip {

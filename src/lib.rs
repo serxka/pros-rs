@@ -73,7 +73,7 @@ pub mod ports;
 pub mod prelude {
 	//! Common types and macros that can all be conveniently imported at once.
 
-	pub use crate::devices::{controller::*, motor::*, DeviceError, Devices};
+	pub use crate::devices::{controller::*, motor::*, Colour, DeviceError, Devices};
 	pub use crate::ports::*;
 	pub use crate::rtos::{
 		action::{Action, NextSleep, Poll},
