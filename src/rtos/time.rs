@@ -115,7 +115,7 @@ impl Instant {
 	/// panic will occur if `self` measures a time in the future that has not
 	/// yet occurred.
 	pub fn elapsed(&self) -> Duration {
-		Duration::from_micros((Instant::now() - *self).as_millis())
+	 (Instant::now() - *self).as_duration()
 	}
 
 	/// Return the duration between this `Instant` and an earlier `Instant`.
