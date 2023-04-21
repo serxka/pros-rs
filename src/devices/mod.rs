@@ -6,6 +6,7 @@
 //! be able to create more TriPorts.
 
 pub mod controller;
+pub mod distance;
 pub mod expander;
 pub mod gps;
 pub mod imu;
@@ -26,6 +27,8 @@ pub enum DeviceError {
 	/// The Port chosen is not within the range of supported ports of the
 	/// V5 Brain,
 	PortRange,
+    /// The Port chosen cannot be configured as a distance sensor,
+	PortNotDistance,
 	/// The Port chosen cannot be configured as a motor,
 	PortNotMotor,
 	/// The port chosen cannot be configured as an IMU,
@@ -52,6 +55,19 @@ impl DeviceError {
 	pub(crate) fn errno_generic() -> Self {
 		match get_errno() {
 			libc::EACCES => Self::ResourceInUse,
+			libc::ENXIO => Self::PortRange,
+			e => {
+				if cfg!(debug_assertions) {
+					panic!("reached unknown error ({e})");
+				}
+				Self::Unknown
+			}
+		}
+	}
+
+    pub(crate) fn errno_distance() -> Self {
+		match get_errno() {
+			libc::ENODEV => Self::PortNotDistance,
 			libc::ENXIO => Self::PortRange,
 			e => {
 				if cfg!(debug_assertions) {
