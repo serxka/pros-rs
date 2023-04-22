@@ -27,7 +27,7 @@ pub enum DeviceError {
 	/// The Port chosen is not within the range of supported ports of the
 	/// V5 Brain,
 	PortRange,
-    /// The Port chosen cannot be configured as a distance sensor,
+	/// The Port chosen cannot be configured as a distance sensor,
 	PortNotDistance,
 	/// The Port chosen cannot be configured as a motor,
 	PortNotMotor,
@@ -65,7 +65,7 @@ impl DeviceError {
 		}
 	}
 
-    pub(crate) fn errno_distance() -> Self {
+	pub(crate) fn errno_distance() -> Self {
 		match get_errno() {
 			libc::ENODEV => Self::PortNotDistance,
 			libc::ENXIO => Self::PortRange,

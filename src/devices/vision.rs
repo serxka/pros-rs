@@ -223,19 +223,29 @@ impl Vision {
 		&self,
 		size_idx: u32,
 		signature_id: SignatureId,
-	) -> Result<Object, DeviceError> {
+	) -> Result<Option<Object>, DeviceError> {
 		let raw = unsafe { vision_get_by_sig(self.get_port(), size_idx, signature_id as _) };
-		match Object::from_raw(raw) {
+		let res = match Object::from_raw(raw) {
 			None => Err(DeviceError::errno_vision()),
 			Some(obj) => Ok(obj),
+		};
+		match res {
+			Err(DeviceError::VisionObjectsDeficit) => Ok(None),
+			Err(e) => Err(e),
+			Ok(t) => Ok(Some(t)),
 		}
 	}
 
-	pub fn get_by_size(&self, size_idx: u32) -> Result<Object, DeviceError> {
+	pub fn get_by_size(&self, size_idx: u32) -> Result<Option<Object>, DeviceError> {
 		let raw = unsafe { vision_get_by_size(self.get_port(), size_idx) };
-		match Object::from_raw(raw) {
+		let res = match Object::from_raw(raw) {
 			None => Err(DeviceError::errno_vision()),
 			Some(obj) => Ok(obj),
+		};
+		match res {
+			Err(DeviceError::VisionObjectsDeficit) => Ok(None),
+			Err(e) => Err(e),
+			Ok(t) => Ok(Some(t)),
 		}
 	}
 
@@ -243,11 +253,16 @@ impl Vision {
 		&self,
 		size_idx: u32,
 		colour_code: ColourCode,
-	) -> Result<Object, DeviceError> {
+	) -> Result<Option<Object>, DeviceError> {
 		let raw = unsafe { vision_get_by_code(self.get_port(), size_idx, colour_code.as_raw()) };
-		match Object::from_raw(raw) {
+		let res = match Object::from_raw(raw) {
 			None => Err(DeviceError::errno_vision()),
 			Some(obj) => Ok(obj),
+		};
+		match res {
+			Err(DeviceError::VisionObjectsDeficit) => Ok(None),
+			Err(e) => Err(e),
+			Ok(t) => Ok(Some(t)),
 		}
 	}
 

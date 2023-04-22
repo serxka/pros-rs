@@ -18,7 +18,7 @@ const WHITELIST_FUNCTIONS: &[&str] = &[
 	"controller_print",
 	"controller_rumble",
 	"controller_set_text",
-    "distance_get",
+	"distance_get",
 	"distance_get_confidence",
 	"distance_get_object_size",
 	"distance_get_object_velocity",
