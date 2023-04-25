@@ -1,5 +1,4 @@
 #![no_std]
-#![feature(alloc_error_handler)]
 #![feature(negative_impls)]
 #![feature(const_option)]
 #![feature(panic_info_message)]
@@ -154,11 +153,6 @@ unsafe impl GlobalAlloc for LibcAlloc {
 
 #[global_allocator]
 static ALLOC: LibcAlloc = LibcAlloc;
-
-#[alloc_error_handler]
-fn alloc_error(layout: Layout) -> ! {
-	panic!("alloc failed: {:?}", layout);
-}
 
 // TODO: Printing to screen for easy debugging
 #[panic_handler]
