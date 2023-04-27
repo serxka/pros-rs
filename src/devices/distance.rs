@@ -10,8 +10,9 @@ pub struct DistanceSensor {
 }
 
 impl DistanceSensor {
-	pub fn new(port: Port) -> Self {
-		Self { port }
+	pub fn new(port: Port) -> Result<Self, DeviceError> {
+		let distance_sensor = Self { port };
+		Ok(distance_sensor)
 	}
 
 	#[inline]

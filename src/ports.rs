@@ -2,7 +2,7 @@
 
 use crate::bindings::*;
 use crate::devices::{
-	gps::*, imu::*, led::*, motor::*, rotation::*, vision::*, DeviceError, Direction,
+	distance::*, gps::*, imu::*, led::*, motor::*, rotation::*, vision::*, DeviceError, Direction,
 };
 
 use core::num::NonZeroU8;
@@ -131,6 +131,16 @@ impl Port {
 	#[inline]
 	pub fn into_vision(self) -> Result<Vision, DeviceError> {
 		unsafe { Vision::new(self) }
+	}
+
+	/// Convert this port into a new distance sensor object. Semantics are
+	/// identical to [`DistanceSensor::new()`]
+	///
+	/// # Errors
+	/// Check [`DistanceSensor::new()`] semantics.
+	#[inline]
+	pub fn into_distance(self) -> Result<DistanceSensor, DeviceError> {
+		unsafe { DistanceSensor::new(self) }
 	}
 }
 
