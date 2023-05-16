@@ -85,7 +85,8 @@ impl Task {
 	/// print!("A ");
 	/// tasks::spawn(|| {
 	/// 	print!("B ");
-	/// }).join();
+	/// })
+	/// .join();
 	/// println!("C");
 	/// ```
 	pub fn join(&self) {
@@ -228,8 +229,8 @@ impl TaskBuilder {
 /// spawn(|| {
 /// 	let mut i = 1;
 /// 	loop {
-/// 			println!("hello again for... it's be {} times hasn't it?", i);
-/// 			Task::delay(Duration::from_millis(200));
+/// 		println!("hello again for... it's be {} times hasn't it?", i);
+/// 		Task::delay(Duration::from_millis(200));
 /// 	}
 /// })
 /// ```
