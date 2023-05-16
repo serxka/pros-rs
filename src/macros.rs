@@ -183,3 +183,13 @@ macro_rules! pros_unsafe_err_sig {
 		}
 	};
 }
+
+#[doc(hidden)]
+#[macro_export]
+macro_rules! dbg_duration_is_u32 {
+	($duration:expr) => {
+		if cfg!(debug_assertions) && $duration.as_millis() > u32::MAX as _ {
+			panic!("cannot use duration where ms > u32::MAX");
+		}
+	};
+}

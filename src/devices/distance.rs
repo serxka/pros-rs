@@ -10,7 +10,7 @@ pub struct DistanceSensor {
 }
 
 impl DistanceSensor {
-	pub fn new(port: Port) -> Result<Self, DeviceError> {
+	pub unsafe fn new(port: Port) -> Result<Self, DeviceError> {
 		let distance_sensor = Self { port };
 		Ok(distance_sensor)
 	}
@@ -21,28 +21,26 @@ impl DistanceSensor {
 	}
 
 	pub fn get_distance(&self) -> Result<i32, DeviceError> {
-		let v = pros_unsafe_err!(
+		pros_unsafe_err!(
 			distance_get,
 			err = DeviceError::errno_distance(),
 			self.get_port()
-		)?;
-		Ok(v)
+		)
 	}
 
 	pub fn get_confidence(&self) -> Result<i32, DeviceError> {
-		let v = pros_unsafe_err!(
+		pros_unsafe_err!(
 			distance_get_confidence,
 			err = DeviceError::errno_distance(),
 			self.get_port()
-		)?;
-		Ok(v)
+		)
 	}
+
 	pub fn get_object_size(&self) -> Result<i32, DeviceError> {
-		let v = pros_unsafe_err!(
+		pros_unsafe_err!(
 			distance_get_object_size,
 			err = DeviceError::errno_distance(),
 			self.get_port()
-		)?;
-		Ok(v)
+		)
 	}
 }

@@ -253,13 +253,13 @@ impl CompetitionState {
 
 	#[doc(hidden)]
 	pub fn add_opcontrol(&self, task: Task) {
-		let mut s = self.0.lock().unwrap();
+		let mut s = self.0.lock();
 		s.opcontrol_task = Some(task);
 	}
 
 	#[doc(hidden)]
 	pub fn add_autonomous(&self, task: Task) {
-		let mut s = self.0.lock().unwrap();
+		let mut s = self.0.lock();
 		s.autonomous_task = Some(task);
 	}
 
@@ -284,7 +284,7 @@ impl CompetitionState {
 					}
 				}
 
-				let inner = self.0 .0.lock().unwrap();
+				let inner = self.0 .0.lock();
 				let done = match self.1 {
 					CompetitionTask::OpControl => {
 						check_done(inner.opcontrol_task.as_ref().expect(

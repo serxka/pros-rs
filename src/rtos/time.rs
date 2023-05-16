@@ -7,6 +7,9 @@ use crate::rtos::{
 use core::ops::{Add, AddAssign, Sub};
 pub use core::time::Duration;
 
+/// A duration which is representative of a value which will never timeout.
+pub(crate) const INF_TIMEOUT: Duration = Duration::from_millis(u32::MAX as _);
+
 /// A sample of a monotonically nondecreasing clock running from the start of
 /// program execution. Used to represent a point in time of the programs
 /// operation. Stored internally with a 1 microsecond precision.

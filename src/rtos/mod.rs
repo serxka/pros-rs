@@ -2,16 +2,19 @@
 //! and synchronisation primitives.
 
 pub mod action;
+pub mod semaphore;
 pub mod tasks;
 pub mod time;
 
 use crate::bindings;
+use crate::devices::DeviceError;
 
 use core::{
 	cell::UnsafeCell,
 	mem::MaybeUninit,
 	ops::{Deref, DerefMut},
 	sync::atomic::{AtomicBool, Ordering},
+	time::Duration,
 };
 
 struct MutexInner {
@@ -20,15 +23,21 @@ struct MutexInner {
 
 impl MutexInner {
 	pub fn new() -> MutexInner {
-		let ptr = unsafe { bindings::mutex_create() };
-		if ptr == core::ptr::null_mut() {
-			panic!("failed to create mutex");
-		}
-		MutexInner { ptr }
+		Self::try_new().expect("failed to create mutex")
 	}
 
-	pub fn take(&self, timeout: u32) -> bool {
-		unsafe { bindings::mutex_take(self.ptr, timeout) }
+	pub fn try_new() -> Result<MutexInner, DeviceError> {
+		let ptr = unsafe { bindings::mutex_create() };
+		if ptr == core::ptr::null_mut() {
+			Err(DeviceError::errno_generic())
+		} else {
+			Ok(MutexInner { ptr })
+		}
+	}
+
+	pub fn take(&self, timeout: Duration) -> bool {
+		dbg_duration_is_u32!(timeout);
+		unsafe { bindings::mutex_take(self.ptr, timeout.as_millis() as u32) }
 	}
 
 	pub fn give(&self) -> bool {
@@ -75,10 +84,13 @@ impl<T: ?Sized> Mutex<T> {
 	///
 	/// The semantics of this function are the exact same as
 	/// [`Mutex::lock_timeout`] however the timeout if infinite.
-	pub fn lock(&self) -> Option<MutexGuard<'_, T>> {
+	pub fn lock(&self) -> MutexGuard<'_, T> {
 		// A timeout of u32::MAX is the same value as `TIMEOUT_MAX` in PROS and
-		// will block indefinitely
-		self.lock_timeout(u32::MAX)
+		// will block indefinitely, this is why `None` should be unreachable
+		match self.lock_timeout(time::INF_TIMEOUT) {
+			Some(guard) => guard,
+			None => unreachable!(),
+		}
 	}
 
 	/// Acquires a mutex blocking the current task until it is able to do so or
@@ -97,7 +109,7 @@ impl<T: ?Sized> Mutex<T> {
 	/// # Errors
 	/// This function will return an option if the Mutex was unable to be
 	/// obtained due to a timeout.
-	pub fn lock_timeout(&self, timeout: u32) -> Option<MutexGuard<'_, T>> {
+	pub fn lock_timeout(&self, timeout: Duration) -> Option<MutexGuard<'_, T>> {
 		if self.mutex.take(timeout) {
 			Some(MutexGuard { lock: &self })
 		} else {
@@ -166,6 +178,59 @@ impl<T: ?Sized> DerefMut for MutexGuard<'_, T> {
 impl<T: ?Sized> Drop for MutexGuard<'_, T> {
 	fn drop(&mut self) {
 		debug_assert!(self.lock.mutex.give());
+	}
+}
+
+pub struct Semaphore {
+	ptr: *mut libc::c_void,
+}
+
+unsafe impl Send for Semaphore {}
+unsafe impl Sync for Semaphore {}
+
+impl Semaphore {
+	pub fn new(max_count: u32, init_count: u32) -> Semaphore {
+		Self::new_try(max_count, init_count).expect("failed to create semaphore")
+	}
+
+	pub fn new_try(max_count: u32, init_count: u32) -> Result<Semaphore, DeviceError> {
+		let ptr = unsafe { bindings::sem_create(max_count, init_count) };
+		if ptr == core::ptr::null_mut() {
+			Err(DeviceError::errno_generic())
+		} else {
+			Ok(Semaphore { ptr })
+		}
+	}
+
+	pub fn wait(&self) -> bool {
+		self.wait_timeout(time::INF_TIMEOUT)
+	}
+
+	pub fn poll(&self) -> bool {
+		self.wait_timeout(Duration::ZERO)
+	}
+
+	pub fn wait_timeout(&self, timeout: Duration) -> bool {
+		dbg_duration_is_u32!(timeout);
+		unsafe { bindings::sem_wait(self.ptr, timeout.as_millis() as u32) }
+	}
+
+	pub fn post(&self) -> Result<(), DeviceError> {
+		if unsafe { bindings::mutex_give(self.ptr) } {
+			Err(DeviceError::errno_generic())
+		} else {
+			Ok(())
+		}
+	}
+
+	pub fn count(&self) -> usize {
+		unsafe { bindings::sem_get_count(self.ptr) as usize }
+	}
+}
+
+impl Drop for Semaphore {
+	fn drop(&mut self) {
+		unsafe { bindings::sem_delete(self.ptr) };
 	}
 }
 

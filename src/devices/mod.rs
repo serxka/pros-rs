@@ -46,6 +46,8 @@ pub enum DeviceError {
 	VisionObjectsDeficit,
 	/// The port chosen cannot be configured as an ADI port,
 	PortNotADI,
+	/// The V5 Brain ran out of memory
+	OutOfMemory,
 	/// An unknown error,
 	#[doc(hidden)]
 	Unknown,
@@ -56,6 +58,7 @@ impl DeviceError {
 		match get_errno() {
 			libc::EACCES => Self::ResourceInUse,
 			libc::ENXIO => Self::PortRange,
+			libc::ENOMEM => Self::OutOfMemory,
 			e => {
 				if cfg!(debug_assertions) {
 					panic!("reached unknown error ({e})");

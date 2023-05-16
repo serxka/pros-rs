@@ -1,24 +1,6 @@
 # pros-rs
 rust bindings and environment for the vex pros open source kernel, very much a working in progress at the moment
 
-## Priorities
-Priorities for bindings and getting things working
-- [x] FreeRTOS
-	- [x] Tasks
-	- [x] Atomics
-	- [x] Mutexes
-- [x] Controllers
-- [x] Motors (documentation needed)
-- [ ] Sensors
-	- [x] Rotation sensor (documentation needed)
-	- [x] IMU
-	- [ ] Optical sensor
-	- [ ] Vision sensor
-	- [x] GPS sensor
-- [x] ADI (TriPort)
-- [ ] Testing
-- [ ] Display, GUI (home rolled immediate mode?)
-
 ## Tools Required
 - arm-none-eabi gcc and binutils
 - prosv5 cli tool
