@@ -1,6 +1,6 @@
 pros-rs contains modified or linked source code from the following packages:
-    - FreeRTOS (src/rtos/LICENSE)
-    - PROS (LICENSE)
+    - FreeRTOS (kernel@3.8.0.zip/src/rtos/LICENSE)
+    - PROS (kernel@3.8.0.zip/LICENSE)
 
 Unless otherwise specified, pros-rs is distributed under the Mozilla Public
 License Version 2.0, reproduced below:

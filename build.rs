@@ -2,32 +2,6 @@ use std::env;
 use std::path::PathBuf;
 
 const WHITELIST_FUNCTIONS: &[&str] = &[
-	"adi_analog_calibrate",
-	"adi_analog_read",
-	"adi_analog_read_calibrated",
-	"adi_analog_read_calibrated_HR",
-	"adi_digital_get_new_press",
-	"adi_digital_read",
-	"adi_digital_write",
-	"adi_encoder_get",
-	"adi_encoder_init",
-	"adi_encoder_reset",
-	"adi_encoder_shutdown",
-	"adi_gyro_get",
-	"adi_gyro_init",
-	"adi_gyro_reset",
-	"adi_gyro_shutdown",
-	"adi_motor_get",
-	"adi_motor_set",
-	"adi_motor_stop",
-	"adi_pin_mode",
-	"adi_port_get_config",
-	"adi_port_get_value",
-	"adi_port_set_config",
-	"adi_port_set_value",
-	"adi_ultrasonic_get",
-	"adi_ultrasonic_init",
-	"adi_ultrasonic_shutdown",
 	"battery_get_capacity",
 	"battery_get_current",
 	"battery_get_temperature",
@@ -44,38 +18,40 @@ const WHITELIST_FUNCTIONS: &[&str] = &[
 	"controller_print",
 	"controller_rumble",
 	"controller_set_text",
-	"delay",
 	"distance_get",
 	"distance_get_confidence",
 	"distance_get_object_size",
 	"distance_get_object_velocity",
-	"ext_adi_analog_calibrate",
 	"ext_adi_analog_read",
-	"ext_adi_analog_read_calibrated",
-	"ext_adi_analog_read_calibrated_HR",
 	"ext_adi_digital_get_new_press",
 	"ext_adi_digital_read",
 	"ext_adi_digital_write",
-	"ext_adi_encoder_get",
-	"ext_adi_encoder_init",
-	"ext_adi_encoder_reset",
-	"ext_adi_encoder_shutdown",
-	"ext_adi_gyro_get",
-	"ext_adi_gyro_init",
-	"ext_adi_gyro_reset",
-	"ext_adi_gyro_shutdown",
-	"ext_adi_motor_get",
-	"ext_adi_motor_set",
-	"ext_adi_motor_stop",
+	"ext_adi_led_clear_all",
+	"ext_adi_led_clear_pixel",
+	"ext_adi_led_init",
+	"ext_adi_led_set",
+	"ext_adi_led_set_all",
+	"ext_adi_led_set_pixel",
 	"ext_adi_pin_mode",
 	"ext_adi_port_get_config",
 	"ext_adi_port_get_value",
 	"ext_adi_port_set_config",
 	"ext_adi_port_set_value",
-	"ext_adi_ultrasonic_get",
-	"ext_adi_ultrasonic_init",
-	"ext_adi_ultrasonic_shutdown",
 	"fdctl",
+	"gps_get_accel",
+	"gps_get_error",
+	"gps_get_gyro_rate",
+	"gps_get_heading",
+	"gps_get_heading_raw",
+	"gps_get_offset",
+	"gps_get_rotation",
+	"gps_get_status",
+	"gps_initialize_full",
+	"gps_set_data_rate",
+	"gps_set_offset",
+	"gps_set_position",
+	"gps_set_rotation",
+	"gps_tare_rotation",
 	"imu_get_accel",
 	"imu_get_euler",
 	"imu_get_gyro_rate",
@@ -106,15 +82,10 @@ const WHITELIST_FUNCTIONS: &[&str] = &[
 	"lcd_is_initialized",
 	"lcd_print",
 	"lcd_read_buttons",
-	"lcd_register_btn0_cb",
-	"lcd_register_btn1_cb",
-	"lcd_register_btn2_cb",
 	"lcd_set_text",
 	"lcd_shutdown",
 	"micros",
 	"millis",
-	"motor_convert_pid",
-	"motor_convert_pid_full",
 	"motor_get_actual_velocity",
 	"motor_get_brake_mode",
 	"motor_get_current_draw",
@@ -151,11 +122,7 @@ const WHITELIST_FUNCTIONS: &[&str] = &[
 	"motor_set_current_limit",
 	"motor_set_encoder_units",
 	"motor_set_gearing",
-	"motor_set_pos_pid",
-	"motor_set_pos_pid_full",
 	"motor_set_reversed",
-	"motor_set_vel_pid",
-	"motor_set_vel_pid_full",
 	"motor_set_voltage_limit",
 	"motor_set_zero_position",
 	"motor_tare_position",
@@ -189,6 +156,11 @@ const WHITELIST_FUNCTIONS: &[&str] = &[
 	"rotation_set_data_rate",
 	"rotation_set_position",
 	"rotation_set_reversed",
+	"sem_create",
+	"sem_delete",
+	"sem_get_count",
+	"sem_post",
+	"sem_wait",
 	"serctl",
 	"task_create",
 	"task_delay",
@@ -200,6 +172,7 @@ const WHITELIST_FUNCTIONS: &[&str] = &[
 	"task_get_name",
 	"task_get_priority",
 	"task_get_state",
+	"task_join",
 	"task_notify",
 	"task_notify_clear",
 	"task_notify_ext",
@@ -230,9 +203,10 @@ const WHITELIST_FUNCTIONS: &[&str] = &[
 	"vision_set_zero_point",
 	"vision_signature_from_utility",
 ];
-
-const WHITELIST_TYPES: &[&str] = &["motor_pid_s"];
+const WHITELIST_TYPES: &[&str] = &["ext_adi_led_t"];
 const WHITELIST_VARS: &[&str] = &["errno"];
+
+const BLACKLIST_ITEMS: &[&str] = &["vision_object_s_t"];
 const BITFIELD_ENUM: &[&str] = &[];
 
 fn main() {
@@ -245,7 +219,7 @@ fn main() {
 
 	// Extract kernel zip
 	let kernel_file =
-		std::fs::File::open("kernel@3.7.1.zip").expect("failed to open kernel zip file");
+		std::fs::File::open("kernel@3.8.0.zip").expect("failed to open kernel zip file");
 	zip::read::ZipArchive::new(kernel_file)
 		.unwrap()
 		.extract(kernel_path.clone())
@@ -291,16 +265,21 @@ fn main() {
 		.clang_args(include_paths)
 		.ctypes_prefix("libc")
 		.layout_tests(false)
+		.generate_comments(false)
 		.use_core();
 
 	for func in WHITELIST_FUNCTIONS {
 		bindings = bindings.allowlist_function(func);
 	}
 	for ty in WHITELIST_TYPES {
-		bindings = bindings.allowlist_function(ty);
+		bindings = bindings.allowlist_type(ty);
 	}
 	for var in WHITELIST_VARS {
-		bindings = bindings.allowlist_function(var);
+		bindings = bindings.allowlist_var(var);
+	}
+
+	for item in BLACKLIST_ITEMS {
+		bindings = bindings.blocklist_item(item);
 	}
 	for bitfield in BITFIELD_ENUM {
 		bindings = bindings.allowlist_function(bitfield);

@@ -1,4 +1,8 @@
+blank_lines_upper_bound = 1
+format_code_in_doc_comments = true
+format_strings = true
 hard_tabs = true
 max_width = 100
+normalize_doc_attributes = true
+reorder_imports = true
 wrap_comments = true
-format_strings = true

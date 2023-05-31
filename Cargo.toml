@@ -1,6 +1,6 @@
 [package]
 name = "pros"
-version = "0.2.2"
+version = "0.3.0-beta.1"
 authors = ["serxka <serxka@protonmail.com>"]
 edition = "2021"
 
@@ -9,12 +9,13 @@ name = "pros"
 path = "src/lib.rs"
 
 [dependencies]
+bitflags = "1"
 libc = { version = "0.2", default-features = false }
 libc-print = "0.1"
-bitflags = "1"
-smallvec = "1.7"
-math = { path = "./math" }
+robot_algorithms = { git = "https://github.com/nonl4331/robot-algorithms" }
+smallvec = { version = "1.7", features = ["const_new", "const_generics"]}
+pros_macro = { path = "./macros"}
 
 [build-dependencies]
-zip = { version = "0.5", default-features = false, features = ["deflate"] }
 bindgen = "0.59"
+zip = { version = "0.5", default-features = false, features = ["deflate"] }

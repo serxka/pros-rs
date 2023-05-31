@@ -1,9 +1,9 @@
 use crate::bindings::*;
 use crate::devices::DeviceError;
 use crate::ports::Port;
-use crate::util::{PROS_ERR, PROS_ERR_F, PROS_ERR_U32};
+use crate::util::{PROS_ERR_F, PROS_ERR_U32};
 
-use math::{quat::Quaternion, vec::DVec3};
+use crate::math::{quat::Quat, vec::Vec3};
 
 /// A struct which holds and presents a connected Inertial measurement unit
 /// connected to the V5 Brain.
@@ -26,10 +26,10 @@ impl IMU {
 	/// the caller to make sure there does not exists another device object with
 	/// the same port. If there is another device object with the same port this
 	/// will result in undefined behaviour and/or panics.
-	pub unsafe fn new(port: Port) -> Self {
+	pub unsafe fn new(port: Port) -> Result<Self, DeviceError> {
 		let mut imu = IMU { port };
-		imu.calibrate().unwrap();
-		imu
+		imu.calibrate()?;
+		Ok(imu)
 	}
 
 	#[inline]
@@ -49,7 +49,7 @@ impl IMU {
 
 	/// Get a processed value for the rotation of the IMU sensor as a
 	/// quaternion.
-	pub fn get_quaternion(&self) -> Result<Quaternion, DeviceError> {
+	pub fn get_quaternion(&self) -> Result<Quat, DeviceError> {
 		let res = unsafe { imu_get_quaternion(self.get_port()) };
 		if res.x == PROS_ERR_F && res.y == PROS_ERR_F && res.z == PROS_ERR_F && res.w == PROS_ERR_F
 		{
@@ -59,9 +59,20 @@ impl IMU {
 		}
 	}
 
+	/// Get a processed value for the rotation of the IMU sensor as
+	/// total rotations around the Z axis in degrees
+	pub fn get_rotation(&self) -> Result<f64, DeviceError> {
+		let rotation = unsafe { imu_get_rotation(self.get_port()) };
+		if rotation == PROS_ERR_F {
+			Err(DeviceError::errno_imu())
+		} else {
+			Ok(rotation)
+		}
+	}
+
 	/// Read the raw values from the gryoscope. This is the rate at which it is
 	/// turning.
-	pub fn get_gyro_rate(&self) -> Result<DVec3, DeviceError> {
+	pub fn get_gyro_rate(&self) -> Result<Vec3, DeviceError> {
 		let res = unsafe { imu_get_gyro_rate(self.get_port()) };
 		if res.x == PROS_ERR_F && res.y == PROS_ERR_F && res.z == PROS_ERR_F {
 			Err(DeviceError::errno_imu())
@@ -71,7 +82,7 @@ impl IMU {
 	}
 
 	/// Read all three of the raw values for IMU sensors accelerometer axes.
-	pub fn get_acceleration(&self) -> Result<DVec3, DeviceError> {
+	pub fn get_acceleration(&self) -> Result<Vec3, DeviceError> {
 		let res = unsafe { imu_get_accel(self.get_port()) };
 		if res.x == PROS_ERR_F && res.y == PROS_ERR_F && res.z == PROS_ERR_F {
 			Err(DeviceError::errno_imu())
@@ -91,7 +102,7 @@ impl IMU {
 	pub fn is_calibrating(&self) -> Result<bool, DeviceError> {
 		match unsafe { imu_get_status(self.get_port()) } {
 			PROS_ERR_U32 => Err(DeviceError::errno_imu()),
-			s if s == imu_status_e_E_IMU_STATUS_ERROR => Err(DeviceError::Unknown(PROS_ERR)),
+			s if s == imu_status_e_E_IMU_STATUS_ERROR => Err(DeviceError::Unknown),
 			// We know for sure that it is calibrating
 			s if s & imu_status_e_E_IMU_STATUS_CALIBRATING != 0 => Ok(true),
 			// We probably got 0 meaning it's calibrated, otherwise rubbish
@@ -101,19 +112,19 @@ impl IMU {
 	}
 }
 
-impl From<imu_raw_s> for DVec3 {
-	fn from(f: imu_raw_s) -> DVec3 {
-		DVec3::new(f.x, f.y, f.z)
+impl From<imu_raw_s> for Vec3 {
+	fn from(f: imu_raw_s) -> Vec3 {
+		Vec3::new(f.x, f.y, f.z)
 	}
 }
 
-impl From<quaternion_s> for Quaternion {
-	fn from(f: quaternion_s) -> Quaternion {
-		Quaternion {
-			x: f.x,
-			y: f.y,
-			z: f.z,
-			w: f.w,
+impl From<quaternion_s> for Quat {
+	fn from(f: quaternion_s) -> Quat {
+		Quat {
+			b: f.x,
+			c: f.y,
+			d: f.z,
+			a: f.w,
 		}
 	}
 }

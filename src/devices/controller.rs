@@ -38,8 +38,10 @@ impl Controller {
 		}
 	}
 
-	/// Gets the value of an analog axis (joystick) on a controller.
-	pub fn get_analog(&self, axis: Axis) -> Result<i8, DeviceError> {
+	/// Gets the value of an analog axis (joystick) on a controller. As an `i8`
+	/// value, if you would like the value as a float use
+	/// [`Controller::get_analog`].
+	pub fn get_analog_raw(&self, axis: Axis) -> Result<i8, DeviceError> {
 		let res = pros_unsafe_err!(
 			controller_get_analog,
 			err = DeviceError::errno_generic(),
@@ -47,6 +49,12 @@ impl Controller {
 			axis.into()
 		)?;
 		Ok(res as i8)
+	}
+
+	/// Gets the value of an analog axis (joystick) on a controller.
+	pub fn get_analog(&self, axis: Axis) -> Result<f64, DeviceError> {
+		self.get_analog_raw(axis)
+			.map(|i| (i as f64 / 127.0).clamp(-1.0, 1.0))
 	}
 
 	/// Get the value of a digital axis (button) on a controller. If the axis is
@@ -245,10 +253,10 @@ impl Battery {
 bitflags! {
 	/// Bitflags for defining the state of the robot in competition mode.
 	pub struct CompetitionMode: u8 {
-		/// The brain is get in autonomous mode.
-		const AUTONOMOUS = 0x1 << 0x0;
 		/// The brain is disabled.
-		const DISABLED = 0x1 << 0x1;
+		const DISABLED = 0x1 << 0x0;
+		/// The brain is in autonomous mode.
+		const AUTONOMOUS = 0x1 << 0x1;
 		/// The brain is connected to the competition control.
 		const CONNECTED = 0x1 << 0x2;
 	}
