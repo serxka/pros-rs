@@ -2,7 +2,6 @@
 //! and synchronisation primitives.
 
 pub mod action;
-pub mod semaphore;
 pub mod tasks;
 pub mod time;
 

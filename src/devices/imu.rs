@@ -55,7 +55,7 @@ impl IMU {
 		{
 			Err(DeviceError::errno_imu())
 		} else {
-			Ok(res.into())
+			Ok(imu_quat_to_quat(res))
 		}
 	}
 
@@ -77,7 +77,7 @@ impl IMU {
 		if res.x == PROS_ERR_F && res.y == PROS_ERR_F && res.z == PROS_ERR_F {
 			Err(DeviceError::errno_imu())
 		} else {
-			Ok(res.into())
+			Ok(imu_raw_into_vec3(res))
 		}
 	}
 
@@ -87,7 +87,7 @@ impl IMU {
 		if res.x == PROS_ERR_F && res.y == PROS_ERR_F && res.z == PROS_ERR_F {
 			Err(DeviceError::errno_imu())
 		} else {
-			Ok(res.into())
+			Ok(imu_raw_into_vec3(res))
 		}
 	}
 
@@ -112,19 +112,15 @@ impl IMU {
 	}
 }
 
-impl From<imu_raw_s> for Vec3 {
-	fn from(f: imu_raw_s) -> Vec3 {
-		Vec3::new(f.x, f.y, f.z)
-	}
+fn imu_raw_into_vec3(f: imu_raw_s) -> Vec3 {
+	Vec3::new(f.x, f.y, f.z)
 }
 
-impl From<quaternion_s> for Quat {
-	fn from(f: quaternion_s) -> Quat {
-		Quat {
-			b: f.x,
-			c: f.y,
-			d: f.z,
-			a: f.w,
-		}
+fn imu_quat_to_quat(f: quaternion_s) -> Quat {
+	Quat {
+		b: f.x,
+		c: f.y,
+		d: f.z,
+		a: f.w,
 	}
 }

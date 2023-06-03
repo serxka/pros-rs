@@ -5,13 +5,8 @@ pub const PROS_ERR_U32: u32 = i32::MAX as u32;
 pub const PROS_ERR_F: f64 = f64::INFINITY;
 pub const PROS_ERR_VISION_OBJECT_SIG: u8 = 255;
 
-extern "C" {
-	// Returns a pointer to this threads errno value
-	fn __errno() -> *mut i32;
-}
-
 pub fn get_errno() -> libc::c_int {
-	unsafe { *__errno() }
+	unsafe { *crate::bindings::__errno() }
 }
 
 #[allow(unused)]

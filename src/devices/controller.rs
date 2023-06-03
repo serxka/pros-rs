@@ -115,7 +115,7 @@ impl Controller {
 	pub fn set_text(&mut self, line: u8, column: u8, text: &str) {
 		let cstring = to_cstring(String::from(text));
 		unsafe {
-			controller_set_text(self.id, line, column, cstring.as_ptr());
+			controller_set_text(self.id, line, column, cstring.as_ptr() as _);
 		}
 	}
 
@@ -157,7 +157,7 @@ impl Controller {
 		}
 
 		unsafe {
-			controller_rumble(self.id, cstr.as_ptr());
+			controller_rumble(self.id, cstr.as_ptr() as _);
 		}
 	}
 }

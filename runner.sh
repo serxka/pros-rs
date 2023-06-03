@@ -41,7 +41,7 @@ EOF
 
 # if no arguments are provided then just do an upload
 if [[ $# -eq 0 ]]; then
-    eval $runner
+    eval "${runner[@]}"
     exit $?
 fi
 

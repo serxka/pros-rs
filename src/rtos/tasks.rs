@@ -47,7 +47,7 @@ impl Task {
 	/// have name. In this case the string returned will be of zero length.
 	pub fn name<'a>(&mut self) -> &'a str {
 		if self.name.is_none() {
-			self.name = Some(unsafe { bindings::task_get_name(self.repr) });
+			self.name = Some(unsafe { bindings::task_get_name(self.repr) as _ });
 		}
 
 		let name = self.name.unwrap();
@@ -199,7 +199,7 @@ impl TaskBuilder {
 				arg as *mut libc::c_void,
 				priority,
 				stack_size,
-				name.as_ptr(),
+				name.as_ptr() as _,
 			);
 			if res == core::ptr::null_mut() {
 				_ = Box::from_raw(arg); // rebox pointer to avoid leak if failed to create task

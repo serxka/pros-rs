@@ -1,5 +1,5 @@
 [package]
-name = "pros_macro"
+name = "pros-macros"
 version = "0.1.0"
 edition = "2021"
 

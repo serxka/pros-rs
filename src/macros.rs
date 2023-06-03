@@ -78,7 +78,7 @@ macro_rules! robot {
 }
 
 #[doc(hidden)]
-pub use pros_macro::action_internal;
+pub use pros_macros::action_internal;
 
 /// Poll actions until one is found to be complete, if none are complete, then
 /// it will sleep until the next time that one is suggested to be available.
