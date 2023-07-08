@@ -29,7 +29,7 @@ impl RotationSensor {
 	}
 
 	#[inline]
-	fn get_port(&self) -> u8 {
+	pub fn get_port(&self) -> u8 {
 		self.port.get()
 	}
 

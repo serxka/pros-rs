@@ -8,6 +8,7 @@ use crate::util::to_cstring;
 use alloc::{boxed::Box, string::String, sync::Arc};
 use core::time::Duration;
 
+#[derive(Clone)]
 pub struct Task {
 	repr: *mut core::ffi::c_void,
 	name: Option<*const libc::c_char>,
@@ -95,6 +96,27 @@ impl Task {
 		assert!(self.repr != Task::current().repr);
 		unsafe {
 			bindings::task_join(self.repr);
+		}
+	}
+
+	/// Remove as task from RTOS task management. The task being deleted will be
+	/// removed from all queues. Memory and resource allocated by this task will
+	/// not be freed.
+	///
+	/// It is not advisable to use this function. Instead prefer using
+	/// [`Task::join()`], letting the calling task cleanly exit, calling `Drop`
+	/// as needed. If this is called on the current task then it will be
+	/// deleted.
+	///
+	/// # Examples
+	/// ```
+	/// let task = tasks::spawn(|| loop {});
+	/// // oh no! our task is stuck, lets delete it
+	/// task.delete();
+	/// ```
+	pub fn delete(self) {
+		unsafe {
+			bindings::task_delete(self.repr);
 		}
 	}
 

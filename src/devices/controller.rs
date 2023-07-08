@@ -60,26 +60,42 @@ impl Controller {
 	/// Get the value of a digital axis (button) on a controller. If the axis is
 	/// high a `true` boolean is return, likewise if it low a `false` is
 	/// returned.
-	pub fn get_button(&self, button: Button) -> Result<bool, DeviceError> {
-		pros_unsafe_err_bool!(
-			controller_get_digital,
-			err = DeviceError::errno_generic(),
-			self.id,
-			button.into()
-		)
+	pub fn get_buttons(&self) -> Result<Buttons, DeviceError> {
+		let mut toggled = Buttons::empty();
+
+		for button in Buttons::all().iter() {
+			if pros_unsafe_err_bool!(
+				controller_get_digital,
+				err = DeviceError::errno_generic(),
+				self.id,
+				Buttons::to_pros(button)
+			)? {
+				toggled.set(button, true);
+			}
+		}
+
+		Ok(toggled)
 	}
 
 	/// Get the value of a digital axis (button) on a controller when it goes
 	/// high (positive-edge). If the axis just when high a `true` boolean is
 	/// return, likewise if it is low or didn't just go high a `false` is
 	/// returned.
-	pub fn get_button_new_press(&self, button: Button) -> Result<bool, DeviceError> {
-		pros_unsafe_err_bool!(
-			controller_get_digital_new_press,
-			err = DeviceError::errno_generic(),
-			self.id,
-			button.into()
-		)
+	pub fn get_button_new_press(&self) -> Result<Buttons, DeviceError> {
+		let mut pressed = Buttons::empty();
+
+		for button in Buttons::all().iter() {
+			if pros_unsafe_err_bool!(
+				controller_get_digital_new_press,
+				err = DeviceError::errno_generic(),
+				self.id,
+				Buttons::to_pros(button)
+			)? {
+				pressed.set(button, true);
+			}
+		}
+
+		Ok(pressed)
 	}
 
 	/// Gets the battery capacity for the given controller.
@@ -186,38 +202,44 @@ impl From<Axis> for controller_analog_e_t {
 	}
 }
 
-/// Which button to read when calling [`Controller::get_button`].
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Button {
-	L1,
-	L2,
-	R1,
-	R2,
-	Up,
-	Down,
-	Left,
-	Right,
-	X,
-	B,
-	Y,
-	A,
+bitflags::bitflags! {
+	#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+	pub struct Buttons: u16 {
+		const A = 0b0000_0000_0001;
+		const B = 0b0000_0000_0010;
+		const X = 0b0000_0000_0100;
+		const Y = 0b0000_0000_1000;
+		const UP = 0b0000_0001_0000;
+		const DOWN = 0b0000_0010_0000;
+		const LEFT = 0b0000_0100_0000;
+		const RIGHT = 0b0000_1000_0000;
+		const L1 = 0b0001_0000_0000;
+		const L2 = 0b0010_0000_0000;
+		const R1 = 0b0100_0000_0000;
+		const R2 = 0b1000_0000_0000;
+	}
 }
 
-impl From<Button> for controller_digital_e_t {
-	fn from(x: Button) -> Self {
-		match x {
-			Button::L1 => controller_digital_e_t_E_CONTROLLER_DIGITAL_L1,
-			Button::L2 => controller_digital_e_t_E_CONTROLLER_DIGITAL_L2,
-			Button::R1 => controller_digital_e_t_E_CONTROLLER_DIGITAL_R1,
-			Button::R2 => controller_digital_e_t_E_CONTROLLER_DIGITAL_R2,
-			Button::Up => controller_digital_e_t_E_CONTROLLER_DIGITAL_UP,
-			Button::Down => controller_digital_e_t_E_CONTROLLER_DIGITAL_DOWN,
-			Button::Left => controller_digital_e_t_E_CONTROLLER_DIGITAL_LEFT,
-			Button::Right => controller_digital_e_t_E_CONTROLLER_DIGITAL_RIGHT,
-			Button::X => controller_digital_e_t_E_CONTROLLER_DIGITAL_X,
-			Button::B => controller_digital_e_t_E_CONTROLLER_DIGITAL_B,
-			Button::Y => controller_digital_e_t_E_CONTROLLER_DIGITAL_Y,
-			Button::A => controller_digital_e_t_E_CONTROLLER_DIGITAL_A,
+impl Buttons {
+	fn to_pros(x: Buttons) -> controller_digital_e_t {
+		if x.bits().count_ones() != 1 {
+			panic!("expected only one flag set");
+		}
+
+		match x.iter().next().unwrap() {
+			Buttons::A => controller_digital_e_t_E_CONTROLLER_DIGITAL_A,
+			Buttons::B => controller_digital_e_t_E_CONTROLLER_DIGITAL_B,
+			Buttons::X => controller_digital_e_t_E_CONTROLLER_DIGITAL_X,
+			Buttons::Y => controller_digital_e_t_E_CONTROLLER_DIGITAL_Y,
+			Buttons::UP => controller_digital_e_t_E_CONTROLLER_DIGITAL_UP,
+			Buttons::DOWN => controller_digital_e_t_E_CONTROLLER_DIGITAL_DOWN,
+			Buttons::LEFT => controller_digital_e_t_E_CONTROLLER_DIGITAL_LEFT,
+			Buttons::RIGHT => controller_digital_e_t_E_CONTROLLER_DIGITAL_RIGHT,
+			Buttons::L1 => controller_digital_e_t_E_CONTROLLER_DIGITAL_L1,
+			Buttons::L2 => controller_digital_e_t_E_CONTROLLER_DIGITAL_L2,
+			Buttons::R1 => controller_digital_e_t_E_CONTROLLER_DIGITAL_R1,
+			Buttons::R2 => controller_digital_e_t_E_CONTROLLER_DIGITAL_R2,
+			_ => unreachable!(),
 		}
 	}
 }

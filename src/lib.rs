@@ -132,6 +132,9 @@ fn panic(info: &core::panic::PanicInfo) -> ! {
 	}
 	libc_print::libc_eprintln!();
 
+	// TODO: format panic message for screen
+	screen_print_at(0, cstr!("panicked!"));
+
 	unsafe {
 		// Go through and stop motors regardless if they are actually motors or not
 		for i in 1..21 {
@@ -140,4 +143,20 @@ fn panic(info: &core::panic::PanicInfo) -> ! {
 		}
 	}
 	loop {}
+}
+
+extern "C" {
+	// enum abi mismatch
+	fn screen_print(txt_fmt: u8, line: i16, text: *const core::ffi::c_char, ...) -> u32;
+}
+
+pub fn screen_print_at(line: u8, msg: *const u8) {
+	unsafe {
+		screen_print(
+			bindings::text_format_e_t_E_TEXT_MEDIUM as _,
+			line as _,
+			cstr!("%s") as *const _,
+			msg,
+		);
+	}
 }

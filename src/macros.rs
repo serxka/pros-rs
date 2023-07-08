@@ -193,3 +193,10 @@ macro_rules! dbg_duration_is_u32 {
 		}
 	};
 }
+
+#[macro_export]
+macro_rules! cstr {
+	($s:expr) => {
+		concat!($s, "\0") as *const str as *const [libc::c_char] as *const libc::c_char
+	};
+}

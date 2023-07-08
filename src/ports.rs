@@ -45,7 +45,7 @@ impl Port {
 	/// # Safety
 	/// The user must make sure this value is not 0, and it is a valid port on
 	/// the V5.
-	pub(crate) unsafe fn new_unchecked(port: u8) -> Self {
+	pub unsafe fn new_unchecked(port: u8) -> Self {
 		Port(NonZeroU8::new_unchecked(port))
 	}
 
@@ -231,6 +231,14 @@ impl TriPort {
 			})
 		} else {
 			None
+		}
+	}
+
+	pub unsafe fn new_unchecked(port: u8, ext_port: Option<Port>) -> Self {
+		TriPort {
+			port: NonZeroU8::new_unchecked(port),
+			// Port 22 is the internal ADI expander port
+			ext_port: ext_port.unwrap_or(Port::new_unchecked(22)),
 		}
 	}
 
