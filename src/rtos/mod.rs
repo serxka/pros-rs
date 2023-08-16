@@ -248,6 +248,8 @@ impl<T> OnceCell<T> {
 
 	/// This function will only ever be called once
 	pub fn call_once<F: FnOnce() -> T>(&self, f: F) {
+		// FIXME
+		#[allow(invalid_reference_casting)]
 		let s = unsafe { &mut *(self as *const Self as *mut Self) };
 
 		if s.has_init.load(Ordering::Acquire) {

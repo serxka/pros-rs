@@ -14,5 +14,5 @@ libc = { version = "0.2", default-features = false }
 libc-print = "0.1"
 pros-macros = { path = "./macros"}
 pros-sys = { git = "https://github.com/serxka/pros-sys", tag = "pros-v3.8.0", features = ["global_allocator"] }
-robot_algorithms = { git = "https://github.com/nonl4331/robot-algorithms" }
+robot_algorithms = { git = "https://github.com/nonl4331/robot-algorithms", rev = "d9aff64" }
 smallvec = { version = "1.7", features = ["const_new", "const_generics"]}

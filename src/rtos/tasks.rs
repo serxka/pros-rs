@@ -22,6 +22,10 @@ impl Task {
 	pub const PRIORITY_MIN: u32 = 1;
 	pub const PRIORITY_MAX: u32 = 16;
 
+	pub fn repr(&self) -> *mut core::ffi::c_void {
+		self.repr
+	}
+
 	/// Return an handle to the current task.
 	pub fn current() -> Task {
 		unsafe {
@@ -118,6 +122,23 @@ impl Task {
 		unsafe {
 			bindings::task_delete(self.repr);
 		}
+	}
+
+	pub fn notify(&self) {
+		// Make sure that we aren't trying to notify ourselfs, that wouldn't make any
+		// sense
+		debug_assert!(self.repr != Task::current().repr);
+		unsafe { bindings::task_notify(self.repr) };
+	}
+
+	pub fn notify_take(&self, clear: bool, timeout: Duration) -> u32 {
+		debug_assert!(self.repr == Task::current().repr);
+		dbg_duration_is_u32!(timeout);
+		unsafe { bindings::task_notify_take(clear, timeout.as_millis() as u32) }
+	}
+
+	pub fn notify_clear(&self) {
+		unsafe { bindings::task_notify_clear(self.repr) };
 	}
 
 	pub fn get_state(&self) -> TaskState {

@@ -156,9 +156,7 @@ impl Motor {
 			err = DeviceError::errno_motor(),
 			self.get_port()
 		)?;
-		// We can't have a negative current draw
-		debug_assert!(i >= 0);
-		Ok(i as u32)
+		Ok(i.abs() as u32)
 	}
 
 	pub fn get_direction(&self) -> Result<Direction, DeviceError> {

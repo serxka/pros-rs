@@ -133,7 +133,23 @@ fn panic(info: &core::panic::PanicInfo) -> ! {
 	libc_print::libc_eprintln!();
 
 	// TODO: format panic message for screen
-	screen_print_at(0, cstr!("panicked!"));
+	//	screen_print_at(0, cstr!("panicked!"));
+
+	if let Some(s) = info.location() {
+		screen_print_at(
+			0,
+			alloc::ffi::CString::new(alloc::format!(
+				"panicked at {}:{}",
+				s.line(),
+				&s.file()[s.file().len() - 10..]
+			))
+			.unwrap()
+			.as_c_str()
+			.as_ptr() as _,
+		);
+	} else {
+		screen_print_at(0, cstr!("panicked"));
+	}
 
 	unsafe {
 		// Go through and stop motors regardless if they are actually motors or not
