@@ -181,6 +181,13 @@ impl Interval {
 		}
 	}
 
+	pub fn time_left(&self) -> Duration {
+		(self.last + self.period)
+			.checked_sub_instant(Instant::now())
+			.map(|t| Duration::from_micros(t.as_micros()))
+			.unwrap_or(Duration::from_micros(0))
+	}
+
 	pub fn delay(&mut self) {
 		// Check if we do actually need to delay for our next period
 		if let Some(t) = (self.last + self.period).checked_sub_instant(Instant::now()) {
