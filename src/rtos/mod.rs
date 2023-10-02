@@ -176,7 +176,7 @@ impl<T: ?Sized> DerefMut for MutexGuard<'_, T> {
 
 impl<T: ?Sized> Drop for MutexGuard<'_, T> {
 	fn drop(&mut self) {
-		debug_assert!(self.lock.mutex.give());
+		assert!(self.lock.mutex.give());
 	}
 }
 
