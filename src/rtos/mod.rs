@@ -12,7 +12,7 @@ use core::{
 	cell::UnsafeCell,
 	mem::MaybeUninit,
 	ops::{Deref, DerefMut},
-	sync::atomic::{AtomicBool, Ordering},
+	sync::atomic::{self, AtomicBool, Ordering},
 	time::Duration,
 };
 
@@ -27,7 +27,7 @@ impl MutexInner {
 
 	pub fn try_new() -> Result<MutexInner, DeviceError> {
 		let ptr = unsafe { bindings::mutex_create() };
-		if ptr == core::ptr::null_mut() {
+		if ptr.is_null() {
 			Err(DeviceError::errno_generic())
 		} else {
 			Ok(MutexInner { ptr })
@@ -110,7 +110,7 @@ impl<T: ?Sized> Mutex<T> {
 	/// obtained due to a timeout.
 	pub fn lock_timeout(&self, timeout: Duration) -> Option<MutexGuard<'_, T>> {
 		if self.mutex.take(timeout) {
-			Some(MutexGuard { lock: &self })
+			Some(MutexGuard { lock: self })
 		} else {
 			None
 		}
@@ -176,7 +176,8 @@ impl<T: ?Sized> DerefMut for MutexGuard<'_, T> {
 
 impl<T: ?Sized> Drop for MutexGuard<'_, T> {
 	fn drop(&mut self) {
-		assert!(self.lock.mutex.give());
+		let result = self.lock.mutex.give();
+		debug_assert!(result);
 	}
 }
 
@@ -194,7 +195,7 @@ impl Semaphore {
 
 	pub fn new_try(max_count: u32, init_count: u32) -> Result<Semaphore, DeviceError> {
 		let ptr = unsafe { bindings::sem_create(max_count, init_count) };
-		if ptr == core::ptr::null_mut() {
+		if ptr.is_null() {
 			Err(DeviceError::errno_generic())
 		} else {
 			Ok(Semaphore { ptr })
@@ -235,30 +236,29 @@ impl Drop for Semaphore {
 
 pub struct OnceCell<T> {
 	has_init: AtomicBool,
-	item: MaybeUninit<T>,
+	item: UnsafeCell<MaybeUninit<T>>,
 }
+
+unsafe impl<T: Send> Sync for OnceCell<T> {}
 
 impl<T> OnceCell<T> {
 	pub const fn new() -> Self {
 		Self {
 			has_init: AtomicBool::new(false),
-			item: MaybeUninit::uninit(),
+			item: UnsafeCell::new(MaybeUninit::uninit()),
 		}
 	}
 
 	/// This function will only ever be called once
 	pub fn call_once<F: FnOnce() -> T>(&self, f: F) {
-		// FIXME
-		#[allow(invalid_reference_casting)]
-		let s = unsafe { &mut *(self as *const Self as *mut Self) };
-
-		if s.has_init.load(Ordering::Acquire) {
+		if self.has_init.load(Ordering::Acquire) {
 			return;
 		}
 		unsafe {
-			s.item.as_mut_ptr().write(f());
+			(*self.item.get()).write(f());
 		}
-		s.has_init.store(true, Ordering::SeqCst);
+		atomic::fence(Ordering::Release);
+		self.has_init.store(true, Ordering::Relaxed);
 	}
 
 	/// Check to see if the [`OnceCell::call_once()`] function has set the inner
@@ -272,6 +272,7 @@ impl<T> OnceCell<T> {
 		while !self.has_init.load(Ordering::Relaxed) {
 			core::hint::spin_loop();
 		}
-		unsafe { &*self.item.as_ptr() }
+		atomic::fence(Ordering::Acquire);
+		unsafe { (*self.item.get()).assume_init_ref() }
 	}
 }

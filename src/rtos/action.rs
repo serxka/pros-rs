@@ -23,10 +23,7 @@ pub enum Poll<T> {
 
 impl<T> Poll<T> {
 	pub fn is_complete(&self) -> bool {
-		match self {
-			Poll::Complete(_) => true,
-			_ => false,
-		}
+		matches!(self, Poll::Complete(_))
 	}
 }
 

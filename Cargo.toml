@@ -1,6 +1,6 @@
 [package]
 name = "pros"
-version = "0.3.0-beta.1"
+version = "0.3.0-beta.2"
 authors = ["serxka <serxka@protonmail.com>"]
 edition = "2021"
 
@@ -9,10 +9,10 @@ name = "pros"
 path = "src/lib.rs"
 
 [dependencies]
-bitflags = "2.3"
+bitflags = "2.4"
 libc = { version = "0.2", default-features = false }
 libc-print = "0.1"
+mint = "0.5"
 pros-macros = { path = "./macros"}
-pros-sys = { git = "https://github.com/serxka/pros-sys", tag = "pros-v3.8.0", features = ["global_allocator"] }
-robot_algorithms = { git = "https://github.com/nonl4331/robot-algorithms", rev = "d9aff64" }
-smallvec = { version = "1.7", features = ["const_new", "const_generics"]}
+pros-sys = { git = "https://github.com/serxka/pros-sys", tag = "pros-v3.8.1", features = ["global_allocator"] }
+smallvec = { version = "1.11", features = ["const_new", "const_generics"]}

@@ -125,7 +125,7 @@ impl Task {
 	}
 
 	pub fn notify(&self) {
-		// Make sure that we aren't trying to notify ourselfs, that wouldn't make any
+		// Make sure that we aren't trying to notify ourselves, that wouldn't make any
 		// sense
 		debug_assert!(self.repr != Task::current().repr);
 		unsafe { bindings::task_notify(self.repr) };
@@ -186,6 +186,7 @@ impl From<bindings::task_state_e_t> for TaskState {
 	}
 }
 
+#[derive(Clone, Debug, Default)]
 pub struct TaskBuilder {
 	name: Option<String>,
 	stack_size: Option<u16>,
@@ -244,7 +245,7 @@ impl TaskBuilder {
 				stack_size,
 				name.as_ptr() as _,
 			);
-			if res == core::ptr::null_mut() {
+			if res.is_null() {
 				_ = Box::from_raw(arg); // rebox pointer to avoid leak if failed to create task
 				Err(()) // TODO: error handling
 				 // The only possible error is failure to allocate memory, this
@@ -307,11 +308,6 @@ impl CompetitionState {
 		s.autonomous_task = Some(task);
 	}
 
-	#[doc(hidden)]
-	pub fn clone(&self) -> Self {
-		Self(self.0.clone())
-	}
-
 	/// Check to see if the specific competition task has been completed or
 	/// killed by the Field Management System.
 	pub fn task_done(&'_ self, task: CompetitionTask) -> impl Action + '_ {
@@ -322,10 +318,10 @@ impl CompetitionState {
 
 			fn poll(&mut self) -> Poll<Self::Output> {
 				fn check_done(task: &Task) -> bool {
-					match task.get_state() {
-						TaskState::Suspended | TaskState::Finished | TaskState::Invalid => true,
-						_ => false,
-					}
+					matches!(
+						task.get_state(),
+						TaskState::Suspended | TaskState::Finished | TaskState::Invalid
+					)
 				}
 
 				let inner = self.0 .0.lock();
@@ -354,6 +350,12 @@ impl CompetitionState {
 		}
 
 		TaskDoneAction(self, task)
+	}
+}
+
+impl Clone for CompetitionState {
+	fn clone(&self) -> Self {
+		Self(self.0.clone())
 	}
 }
 

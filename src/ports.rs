@@ -50,7 +50,7 @@ impl Port {
 	}
 
 	pub(crate) unsafe fn clone(&self) -> Self {
-		Port(self.0.clone())
+		Port(self.0)
 	}
 
 	/// Get the value for the port as a `u8` value.
@@ -374,11 +374,7 @@ pub mod modes {
 		/// by a `false`.
 		pub fn read(&self) -> bool {
 			let res = unsafe { ext_adi_port_get_value(self.0.ext_port.get(), self.0.port.get()) };
-			if res == crate::util::PROS_ERR || res == 0 {
-				false
-			} else {
-				true
-			}
+			!(res == crate::util::PROS_ERR || res == 0)
 		}
 	}
 

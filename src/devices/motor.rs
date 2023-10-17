@@ -156,7 +156,7 @@ impl Motor {
 			err = DeviceError::errno_motor(),
 			self.get_port()
 		)?;
-		Ok(i.abs() as u32)
+		Ok(i.unsigned_abs())
 	}
 
 	pub fn get_direction(&self) -> Result<Direction, DeviceError> {

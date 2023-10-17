@@ -3,7 +3,7 @@ use crate::devices::DeviceError;
 use crate::ports::Port;
 use crate::util::{PROS_ERR_F, PROS_ERR_U32};
 
-use crate::math::{quat::Quat, vec::Vec3};
+use mint::{Quaternion, Vector3};
 
 /// A struct which holds and presents a connected Inertial measurement unit
 /// connected to the V5 Brain.
@@ -49,7 +49,7 @@ impl IMU {
 
 	/// Get a processed value for the rotation of the IMU sensor as a
 	/// quaternion.
-	pub fn get_quaternion(&self) -> Result<Quat, DeviceError> {
+	pub fn get_quaternion(&self) -> Result<Quaternion<f64>, DeviceError> {
 		let res = unsafe { imu_get_quaternion(self.get_port()) };
 		if res.x == PROS_ERR_F && res.y == PROS_ERR_F && res.z == PROS_ERR_F && res.w == PROS_ERR_F
 		{
@@ -72,7 +72,7 @@ impl IMU {
 
 	/// Read the raw values from the gryoscope. This is the rate at which it is
 	/// turning.
-	pub fn get_gyro_rate(&self) -> Result<Vec3, DeviceError> {
+	pub fn get_gyro_rate(&self) -> Result<Vector3<f64>, DeviceError> {
 		let res = unsafe { imu_get_gyro_rate(self.get_port()) };
 		if res.x == PROS_ERR_F && res.y == PROS_ERR_F && res.z == PROS_ERR_F {
 			Err(DeviceError::errno_imu())
@@ -82,7 +82,7 @@ impl IMU {
 	}
 
 	/// Read all three of the raw values for IMU sensors accelerometer axes.
-	pub fn get_acceleration(&self) -> Result<Vec3, DeviceError> {
+	pub fn get_acceleration(&self) -> Result<Vector3<f64>, DeviceError> {
 		let res = unsafe { imu_get_accel(self.get_port()) };
 		if res.x == PROS_ERR_F && res.y == PROS_ERR_F && res.z == PROS_ERR_F {
 			Err(DeviceError::errno_imu())
@@ -112,15 +112,13 @@ impl IMU {
 	}
 }
 
-fn imu_raw_into_vec3(f: imu_raw_s) -> Vec3 {
-	Vec3::new(f.x, f.y, f.z)
+fn imu_raw_into_vec3(f: imu_raw_s) -> Vector3<f64> {
+	[f.x, f.y, f.z].into()
 }
 
-fn imu_quat_to_quat(f: quaternion_s) -> Quat {
-	Quat {
-		b: f.x,
-		c: f.y,
-		d: f.z,
-		a: f.w,
+fn imu_quat_to_quat(f: quaternion_s) -> Quaternion<f64> {
+	Quaternion {
+		v: [f.x, f.y, f.z].into(),
+		s: f.w,
 	}
 }
