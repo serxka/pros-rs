@@ -14,5 +14,5 @@ libc = { version = "0.2", default-features = false }
 libc-print = "0.1"
 mint = "0.5"
 pros-macros = { path = "./macros"}
-pros-sys = { git = "https://github.com/serxka/pros-sys", tag = "pros-v3.8.1", features = ["global_allocator"] }
+pros-sys = { git = "https://github.com/serxka/pros-sys", tag = "pros-v3.8.2", features = ["global_allocator"] }
 smallvec = { version = "1.11", features = ["const_new", "const_generics"]}

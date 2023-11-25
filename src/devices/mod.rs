@@ -180,17 +180,17 @@ impl Colour {
 
 	#[inline]
 	pub const fn set_r(self, r: u8) -> Self {
-		Self((self.0 & !Self::R_MASK) | r as u32)
+		Self((self.0 & !Self::R_MASK) | (r as u32) << Self::R_OFFSET)
 	}
 
 	#[inline]
 	pub const fn set_g(self, g: u8) -> Self {
-		Self((self.0 & !Self::G_MASK) | g as u32)
+		Self((self.0 & !Self::G_MASK) | (g as u32) << Self::G_OFFSET)
 	}
 
 	#[inline]
 	pub const fn set_b(self, b: u8) -> Self {
-		Self((self.0 & !Self::B_MASK) | b as u32)
+		Self((self.0 & !Self::B_MASK) | (b as u32) << Self::B_OFFSET)
 	}
 
 	#[inline]
