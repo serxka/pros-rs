@@ -1,7 +1,6 @@
 #![no_std]
 #![feature(negative_impls)]
 #![feature(const_option)]
-#![feature(panic_info_message)]
 
 //! # PROS bindings
 //! This library contains safe Rust bindings for the Vex PROS environment. It should be used in conjunction with this template crate [github.com/serxka/pros-rs-template](https://github.com/serxka/pros-rs-template).
@@ -104,10 +103,9 @@ fn panic(info: &core::panic::PanicInfo) -> ! {
 	// Print panic message
 	if let Some(s) = info.payload().downcast_ref::<&str>() {
 		libc_print::libc_eprint!("'{}', ", s);
-	} else if let Some(args) = info.message() {
-		libc_print::libc_eprint!("'{}', ", args);
 	} else {
-		libc_print::libc_eprint!("<no message>, ");
+		let args = info.message();
+		libc_print::libc_eprint!("'{}', ", args);
 	}
 	// Print panic location
 	if let Some(s) = info.location() {
